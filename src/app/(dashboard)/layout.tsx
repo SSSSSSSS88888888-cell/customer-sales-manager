@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { Sidebar } from "@/components/layouts/sidebar";
-import { Header } from "@/components/layouts/header";
+import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import { Toaster } from "@/components/ui/toaster";
 
-export default async function DashboardLayout({
+export default async function Layout({
   children,
 }: {
   children: React.ReactNode;
@@ -16,13 +15,11 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Header user={session.user} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
-      </div>
+    <>
+      <DashboardLayout user={session.user}>
+        {children}
+      </DashboardLayout>
       <Toaster />
-    </div>
+    </>
   );
 }
