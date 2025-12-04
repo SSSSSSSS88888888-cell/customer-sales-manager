@@ -4,9 +4,11 @@ import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import type { NextAuthConfig } from "next-auth";
+import { authConfig } from "./auth.config";
 
-const authConfig: NextAuthConfig = {
+// API Routes用のフル設定（Prismaあり）
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(prisma),
   providers: [
     Google({
@@ -49,13 +51,8 @@ const authConfig: NextAuthConfig = {
       },
     }),
   ],
-  session: {
-    strategy: "jwt",
-  },
-  pages: {
-    signIn: "/login",
-  },
   callbacks: {
+    ...authConfig.callbacks,
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
@@ -68,24 +65,5 @@ const authConfig: NextAuthConfig = {
       }
       return session;
     },
-    async authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user;
-      const isOnDashboard = !nextUrl.pathname.startsWith("/login") &&
-                            !nextUrl.pathname.startsWith("/register") &&
-                            !nextUrl.pathname.startsWith("/api/auth");
-
-      if (isOnDashboard) {
-        if (isLoggedIn) return true;
-        return false; // Redirect to login
-      } else if (isLoggedIn) {
-        // Redirect to dashboard if already logged in
-        if (nextUrl.pathname === "/login" || nextUrl.pathname === "/register") {
-          return Response.redirect(new URL("/customers", nextUrl));
-        }
-      }
-      return true;
-    },
   },
-};
-
-export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+});
