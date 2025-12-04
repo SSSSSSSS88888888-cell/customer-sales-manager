@@ -1,8 +1,9 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, TrendingUp, ShoppingCart, Banknote } from "lucide-react";
-import Link from "next/link";
+import { Banknote, ShoppingCart, Users, TrendingUp } from "lucide-react";
+import { SummaryCard } from "@/components/dashboard/SummaryCard";
+import { RecentSales } from "@/components/dashboard/RecentSales";
+import { RecentCustomers } from "@/components/dashboard/RecentCustomers";
 
 interface RecentSale {
   id: string;
@@ -22,23 +23,55 @@ interface RecentCustomer {
   createdAt: Date;
 }
 
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) {
+    return "おはようございます";
+  } else if (hour >= 12 && hour < 18) {
+    return "こんにちは";
+  } else {
+    return "こんばんは";
+  }
+}
+
 export default async function DashboardPage() {
   const session = await auth();
   const userId = session?.user?.id;
+  const userName = session?.user?.name || "ゲスト";
 
-  const [customerCount, salesData, recentSales, recentCustomers] = await Promise.all([
+  // 今月の開始日と終了日
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+  const [
+    customerCount,
+    monthlySalesData,
+    recentSales,
+    recentCustomers,
+  ] = await Promise.all([
+    // 顧客数
     prisma.customer.count({ where: { userId } }),
+    // 今月の売上集計
     prisma.sale.aggregate({
-      where: { userId },
+      where: {
+        userId,
+        saleDate: {
+          gte: startOfMonth,
+          lte: endOfMonth,
+        },
+      },
       _sum: { amount: true },
       _count: true,
     }),
+    // 直近の売上5件
     prisma.sale.findMany({
       where: { userId },
       include: { customer: true },
-      orderBy: { createdAt: "desc" },
+      orderBy: { saleDate: "desc" },
       take: 5,
     }) as Promise<RecentSale[]>,
+    // 直近の顧客5件
     prisma.customer.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
@@ -46,157 +79,71 @@ export default async function DashboardPage() {
     }) as Promise<RecentCustomer[]>,
   ]);
 
-  const totalRevenue = Number(salesData._sum.amount || 0);
-  const totalSales = salesData._count;
+  const monthlyRevenue = Number(monthlySalesData._sum.amount || 0);
+  const monthlySalesCount = monthlySalesData._count;
+  const averageTransaction = monthlySalesCount > 0
+    ? Math.round(monthlyRevenue / monthlySalesCount)
+    : 0;
+
+  const greeting = getGreeting();
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900">
-          ダッシュボード
+      {/* ウェルカムメッセージ */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-6 text-white shadow-lg">
+        <h2 className="text-2xl font-bold">
+          {greeting}、{userName}さん
         </h2>
-        <p className="text-slate-600">
-          ビジネスの概要を確認できます
+        <p className="text-blue-100 mt-1">
+          {now.getFullYear()}年{now.getMonth() + 1}月のビジネス概要をご確認ください
         </p>
       </div>
 
-      {/* 統計カード */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-white shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">
-              総顧客数
-            </CardTitle>
-            <Users className="h-4 w-4 text-slate-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900">{customerCount}</div>
-            <Link href="/customers" className="text-xs text-blue-600 hover:underline">
-              顧客一覧を見る →
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">
-              総売上件数
-            </CardTitle>
-            <ShoppingCart className="h-4 w-4 text-slate-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900">{totalSales}</div>
-            <Link href="/sales" className="text-xs text-blue-600 hover:underline">
-              売上一覧を見る →
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">
-              総売上金額
-            </CardTitle>
-            <Banknote className="h-4 w-4 text-slate-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900">
-              ¥{totalRevenue.toLocaleString()}
-            </div>
-            <Link href="/reports" className="text-xs text-blue-600 hover:underline">
-              レポートを見る →
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">
-              平均売上金額
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-slate-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900">
-              ¥{totalSales > 0 ? Math.round(totalRevenue / totalSales).toLocaleString() : "0"}
-            </div>
-            <p className="text-xs text-slate-500">1件あたり</p>
-          </CardContent>
-        </Card>
+      {/* 今月のサマリーカード */}
+      <div>
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">
+          今月のサマリー
+        </h3>
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <SummaryCard
+            title="総売上"
+            value={`¥${monthlyRevenue.toLocaleString()}`}
+            icon={Banknote}
+            description={`${now.getMonth() + 1}月の売上合計`}
+            iconColor="text-green-600"
+            iconBgColor="bg-green-100"
+          />
+          <SummaryCard
+            title="取引件数"
+            value={monthlySalesCount}
+            icon={ShoppingCart}
+            description={`${now.getMonth() + 1}月の取引数`}
+            iconColor="text-blue-600"
+            iconBgColor="bg-blue-100"
+          />
+          <SummaryCard
+            title="顧客数"
+            value={customerCount}
+            icon={Users}
+            description="登録済み顧客"
+            iconColor="text-purple-600"
+            iconBgColor="bg-purple-100"
+          />
+          <SummaryCard
+            title="平均取引額"
+            value={`¥${averageTransaction.toLocaleString()}`}
+            icon={TrendingUp}
+            description="1件あたりの金額"
+            iconColor="text-orange-600"
+            iconBgColor="bg-orange-100"
+          />
+        </div>
       </div>
 
-      {/* 最近のデータ */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* 最近の売上 */}
-        <Card className="bg-white shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg text-slate-900">最近の売上</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentSales.length === 0 ? (
-                <p className="text-slate-500 text-center py-4">
-                  売上がまだありません
-                </p>
-              ) : (
-                recentSales.map((sale: RecentSale) => (
-                  <div
-                    key={sale.id}
-                    className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0 last:pb-0"
-                  >
-                    <div>
-                      <p className="font-medium text-slate-900">{sale.productName}</p>
-                      <p className="text-sm text-slate-500">
-                        {sale.customer?.name || "顧客未設定"}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-slate-900">
-                        ¥{Number(sale.amount).toLocaleString()}
-                      </p>
-                      <p className="text-sm text-slate-500">
-                        {new Date(sale.saleDate).toLocaleDateString("ja-JP")}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 最近の顧客 */}
-        <Card className="bg-white shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg text-slate-900">最近の顧客</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentCustomers.length === 0 ? (
-                <p className="text-slate-500 text-center py-4">
-                  顧客がまだいません
-                </p>
-              ) : (
-                recentCustomers.map((customer: RecentCustomer) => (
-                  <div
-                    key={customer.id}
-                    className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0 last:pb-0"
-                  >
-                    <div>
-                      <p className="font-medium text-slate-900">{customer.name}</p>
-                      <p className="text-sm text-slate-500">
-                        {customer.email || "メールなし"}
-                      </p>
-                    </div>
-                    <p className="text-sm text-slate-500">
-                      {new Date(customer.createdAt).toLocaleDateString("ja-JP")}
-                    </p>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+      {/* 直近のデータ */}
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+        <RecentSales sales={recentSales} />
+        <RecentCustomers customers={recentCustomers} />
       </div>
     </div>
   );
