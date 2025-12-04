@@ -1,10 +1,9 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { SaleList } from "@/components/forms/sale-list";
 
 export default async function SalesPage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   const sales = await prisma.sale.findMany({
     where: { userId: session?.user?.id },
@@ -20,9 +19,9 @@ export default async function SalesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Sales</h2>
+        <h2 className="text-2xl font-bold tracking-tight">売上管理</h2>
         <p className="text-muted-foreground">
-          Track and manage your sales
+          売上データを管理します
         </p>
       </div>
       <SaleList initialSales={sales} customers={customers} />

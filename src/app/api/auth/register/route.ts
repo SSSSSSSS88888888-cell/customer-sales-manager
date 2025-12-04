@@ -4,9 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const registerSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  name: z.string().min(1, "名前を入力してください"),
+  email: z.string().email("有効なメールアドレスを入力してください"),
+  password: z.string().min(8, "パスワードは8文字以上で入力してください"),
 });
 
 export async function POST(request: Request) {
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { message: "User already exists" },
+        { message: "このメールアドレスは既に登録されています" },
         { status: 400 }
       );
     }
@@ -36,20 +36,20 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(
-      { message: "User created successfully", userId: user.id },
+      { message: "アカウントを作成しました", userId: user.id },
       { status: 201 }
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { message: error.errors[0].message },
+        { message: error.issues[0].message },
         { status: 400 }
       );
     }
 
     console.error("Registration error:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "サーバーエラーが発生しました" },
       { status: 500 }
     );
   }

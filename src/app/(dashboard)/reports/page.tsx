@@ -1,11 +1,10 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, TrendingUp, ShoppingCart, Banknote } from "lucide-react";
 
 export default async function ReportsPage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   const userId = session?.user?.id;
 
   const [customerCount, salesData, recentSales] = await Promise.all([
@@ -93,7 +92,7 @@ export default async function ReportsPage() {
                 売上がまだありません
               </p>
             ) : (
-              recentSales.map((sale) => (
+              recentSales.map((sale: { id: string; productName: string; amount: number; saleDate: Date; customer: { name: string } | null }) => (
                 <div
                   key={sale.id}
                   className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0"

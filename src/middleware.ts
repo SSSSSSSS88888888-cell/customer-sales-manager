@@ -1,31 +1,32 @@
-import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 
-export default withAuth(
-  function middleware(req) {
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        const { pathname } = req.nextUrl;
+export default auth((req) => {
+  const { nextUrl } = req;
+  const isLoggedIn = !!req.auth;
 
-        // 認証不要のパス
-        const publicPaths = ["/login", "/register", "/api/auth"];
-        const isPublicPath = publicPaths.some((path) =>
-          pathname.startsWith(path)
-        );
+  // 認証不要のパス
+  const publicPaths = ["/login", "/register"];
+  const isPublicPath = publicPaths.some((path) =>
+    nextUrl.pathname.startsWith(path)
+  );
 
-        if (isPublicPath) {
-          return true;
-        }
-
-        // それ以外はトークンが必要
-        return !!token;
-      },
-    },
+  // API認証パスは常に許可
+  if (nextUrl.pathname.startsWith("/api/auth")) {
+    return;
   }
-);
+
+  // 未認証でプライベートページにアクセス → /login にリダイレクト
+  if (!isLoggedIn && !isPublicPath) {
+    return Response.redirect(new URL("/login", nextUrl));
+  }
+
+  // 認証済みでログイン/登録ページにアクセス → /customers にリダイレクト
+  if (isLoggedIn && isPublicPath) {
+    return Response.redirect(new URL("/customers", nextUrl));
+  }
+
+  return;
+});
 
 export const config = {
   matcher: [

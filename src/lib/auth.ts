@@ -1,50 +1,50 @@
-import { NextAuthOptions } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials";
+import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import type { NextAuthConfig } from "next-auth";
 
-export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as NextAuthOptions["adapter"],
+const authConfig: NextAuthConfig = {
+  adapter: PrismaAdapter(prisma),
   providers: [
-    GoogleProvider({
+    Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-    CredentialsProvider({
+    Credentials({
       name: "credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        email: { label: "メールアドレス", type: "email" },
+        password: { label: "パスワード", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Invalid credentials");
+          throw new Error("メールアドレスとパスワードを入力してください");
         }
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email: credentials.email as string },
         });
 
         if (!user || !user.password) {
-          throw new Error("Invalid credentials");
+          throw new Error("メールアドレスまたはパスワードが正しくありません");
         }
 
         const isValid = await bcrypt.compare(
-          credentials.password,
+          credentials.password as string,
           user.password
         );
 
         if (!isValid) {
-          throw new Error("Invalid credentials");
+          throw new Error("メールアドレスまたはパスワードが正しくありません");
         }
 
         return {
           id: user.id,
           email: user.email,
           name: user.name,
-          image: user.image,
         };
       },
     }),
@@ -68,5 +68,24 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+    async authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user;
+      const isOnDashboard = !nextUrl.pathname.startsWith("/login") &&
+                            !nextUrl.pathname.startsWith("/register") &&
+                            !nextUrl.pathname.startsWith("/api/auth");
+
+      if (isOnDashboard) {
+        if (isLoggedIn) return true;
+        return false; // Redirect to login
+      } else if (isLoggedIn) {
+        // Redirect to dashboard if already logged in
+        if (nextUrl.pathname === "/login" || nextUrl.pathname === "/register") {
+          return Response.redirect(new URL("/customers", nextUrl));
+        }
+      }
+      return true;
+    },
   },
 };
+
+export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);

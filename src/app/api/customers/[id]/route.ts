@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
@@ -14,10 +13,11 @@ const customerSchema = z.object({
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
+    const { id } = await params;
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -25,7 +25,7 @@ export async function GET(
 
     const customer = await prisma.customer.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: session.user.id,
       },
     });
@@ -46,10 +46,11 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
+    const { id } = await params;
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -57,7 +58,7 @@ export async function PUT(
 
     const existingCustomer = await prisma.customer.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: session.user.id,
       },
     });
@@ -70,7 +71,7 @@ export async function PUT(
     const data = customerSchema.parse(body);
 
     const customer = await prisma.customer.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         name: data.name,
         email: data.email || null,
@@ -84,7 +85,7 @@ export async function PUT(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: error.errors[0].message },
+        { error: error.issues[0].message },
         { status: 400 }
       );
     }
@@ -99,10 +100,11 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
+    const { id } = await params;
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -110,7 +112,7 @@ export async function DELETE(
 
     const existingCustomer = await prisma.customer.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: session.user.id,
       },
     });
@@ -120,7 +122,7 @@ export async function DELETE(
     }
 
     await prisma.customer.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({ success: true });
