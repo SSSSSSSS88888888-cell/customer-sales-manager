@@ -1,9 +1,14 @@
+import { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Banknote, ShoppingCart, Users, TrendingUp } from "lucide-react";
 import { SummaryCard } from "@/components/dashboard/SummaryCard";
 import { RecentSales } from "@/components/dashboard/RecentSales";
 import { RecentCustomers } from "@/components/dashboard/RecentCustomers";
+
+export const metadata: Metadata = {
+  title: "ダッシュボード",
+};
 
 interface RecentSale {
   id: string;

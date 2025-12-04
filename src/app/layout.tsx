@@ -15,8 +15,16 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Customer Sales Manager",
-  description: "Manage your customers and sales efficiently",
+  title: {
+    default: "Sales Manager - 顧客・売上管理システム",
+    template: "%s | Sales Manager",
+  },
+  description: "顧客情報と売上データを効率的に管理するWebアプリケーション",
+  keywords: ["顧客管理", "売上管理", "CRM", "ビジネス"],
+  authors: [{ name: "Sales Manager Team" }],
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
@@ -25,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ja">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
