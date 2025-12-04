@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { GuestButton } from "@/components/auth/GuestButton";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -216,6 +217,22 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
+
+          {/* Guest Login Section */}
+          <div className="relative pt-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t-2 border-gray-200" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-white px-3 text-sm text-gray-500">
+                まずは試してみる
+              </span>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <GuestButton />
+          </div>
         </CardContent>
         <CardFooter className="flex justify-center pb-6">
           <p className="text-sm text-gray-600">

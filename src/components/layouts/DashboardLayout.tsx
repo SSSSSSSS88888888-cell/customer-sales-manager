@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { GuestBanner } from "./GuestBanner";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -10,6 +11,7 @@ interface DashboardLayoutProps {
     name?: string | null;
     email?: string | null;
     image?: string | null;
+    isGuest?: boolean;
   };
 }
 
@@ -18,6 +20,9 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* ゲストバナー */}
+      {user.isGuest && <GuestBanner />}
+
       {/* サイドバー */}
       <Sidebar
         isOpen={sidebarOpen}

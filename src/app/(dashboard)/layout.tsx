@@ -16,7 +16,10 @@ export default async function Layout({
 
   return (
     <>
-      <DashboardLayout user={session.user}>
+      <DashboardLayout user={{
+        ...session.user,
+        isGuest: session.user.isGuest ?? false,
+      }}>
         {children}
       </DashboardLayout>
       <Toaster />
