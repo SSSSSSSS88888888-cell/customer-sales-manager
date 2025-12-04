@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateXLSX, formatDateForFilename, formatDateForXLSX } from "@/lib/xlsx";
 
+export const dynamic = "force-dynamic";
+
 interface SaleWithCustomer {
   id: string;
   productName: string;
