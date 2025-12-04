@@ -4,10 +4,15 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const saleSchema = z.object({
-  customerId: z.string().optional().nullable(),
-  productName: z.string().min(1, "商品名は必須です"),
-  amount: z.number().int().positive("金額は正の整数である必要があります"),
-  saleDate: z.string().or(z.date()),
+  customerId: z.string().uuid().optional().nullable(),
+  productName: z.string().min(1, "商品/サービス名は必須です").max(200, "商品/サービス名は200文字以内で入力してください"),
+  amount: z.number().min(1, "金額は1円以上で入力してください"),
+  saleDate: z.string().refine((date) => {
+    const parsed = new Date(date);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    return !isNaN(parsed.getTime()) && parsed <= today;
+  }, "有効な日付を入力してください（未来日は不可）"),
   memo: z.string().optional(),
 });
 
@@ -25,14 +30,24 @@ export async function GET(
 
     const sale = await prisma.sale.findFirst({
       where: {
-        id: id,
+        id,
         userId: session.user.id,
       },
-      include: { customer: true },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
 
     if (!sale) {
-      return NextResponse.json({ error: "Sale not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "売上が見つかりません" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json(sale);
@@ -57,21 +72,25 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // 既存の売上確認
     const existingSale = await prisma.sale.findFirst({
       where: {
-        id: id,
+        id,
         userId: session.user.id,
       },
     });
 
     if (!existingSale) {
-      return NextResponse.json({ error: "Sale not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "売上が見つかりません" },
+        { status: 404 }
+      );
     }
 
     const body = await request.json();
     const data = saleSchema.parse(body);
 
-    // 顧客IDが指定されている場合は存在確認
+    // 顧客が指定されている場合、所有者確認
     if (data.customerId) {
       const customer = await prisma.customer.findFirst({
         where: {
@@ -79,14 +98,16 @@ export async function PUT(
           userId: session.user.id,
         },
       });
-
       if (!customer) {
-        return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+        return NextResponse.json(
+          { error: "指定された顧客が見つかりません" },
+          { status: 400 }
+        );
       }
     }
 
     const sale = await prisma.sale.update({
-      where: { id: id },
+      where: { id },
       data: {
         productName: data.productName,
         amount: data.amount,
@@ -94,7 +115,14 @@ export async function PUT(
         memo: data.memo || null,
         customerId: data.customerId || null,
       },
-      include: { customer: true },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json(sale);
@@ -126,22 +154,26 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // 既存の売上確認
     const existingSale = await prisma.sale.findFirst({
       where: {
-        id: id,
+        id,
         userId: session.user.id,
       },
     });
 
     if (!existingSale) {
-      return NextResponse.json({ error: "Sale not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "売上が見つかりません" },
+        { status: 404 }
+      );
     }
 
     await prisma.sale.delete({
-      where: { id: id },
+      where: { id },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ message: "売上を削除しました" });
   } catch (error) {
     console.error("Error deleting sale:", error);
     return NextResponse.json(
