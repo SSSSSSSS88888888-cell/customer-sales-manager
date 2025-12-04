@@ -4,9 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const customerSchema = z.object({
-  name: z.string().min(1, "名前は必須です"),
-  email: z.string().email().optional().or(z.literal("")),
-  phone: z.string().optional(),
+  name: z.string().min(1, "名前は必須です").max(100, "名前は100文字以内で入力してください"),
+  email: z.string().email("有効なメールアドレスを入力してください").optional().or(z.literal("")),
+  phone: z.string().regex(/^[\d\-]*$/, "電話番号は数字とハイフンのみ使用できます").optional().or(z.literal("")),
   address: z.string().optional(),
   memo: z.string().optional(),
 });
@@ -31,14 +31,14 @@ export async function GET(
     });
 
     if (!customer) {
-      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+      return NextResponse.json({ error: "顧客が見つかりません" }, { status: 404 });
     }
 
     return NextResponse.json(customer);
   } catch (error) {
     console.error("Error fetching customer:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "サーバーエラーが発生しました" },
       { status: 500 }
     );
   }
@@ -64,7 +64,7 @@ export async function PUT(
     });
 
     if (!existingCustomer) {
-      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+      return NextResponse.json({ error: "顧客が見つかりません" }, { status: 404 });
     }
 
     const body = await request.json();
@@ -92,7 +92,7 @@ export async function PUT(
 
     console.error("Error updating customer:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "サーバーエラーが発生しました" },
       { status: 500 }
     );
   }
@@ -118,18 +118,18 @@ export async function DELETE(
     });
 
     if (!existingCustomer) {
-      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+      return NextResponse.json({ error: "顧客が見つかりません" }, { status: 404 });
     }
 
     await prisma.customer.delete({
       where: { id: id },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: "顧客を削除しました" });
   } catch (error) {
     console.error("Error deleting customer:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "サーバーエラーが発生しました" },
       { status: 500 }
     );
   }
