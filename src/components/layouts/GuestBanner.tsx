@@ -5,8 +5,8 @@ import { User, ArrowRight } from "lucide-react";
 
 export function GuestBanner() {
   return (
-    <div className="bg-amber-50 border-b border-amber-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+    <div className="bg-amber-50 border-b border-amber-200 md:pl-60">
+      <div className="px-4 sm:px-6 lg:px-8 py-2">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2 text-amber-800">
             <User className="h-4 w-4" />
