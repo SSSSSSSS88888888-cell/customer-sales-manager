@@ -9,9 +9,9 @@ export default auth((req) => {
 
   // 認証不要のパス
   const publicPaths = ["/login", "/register"];
-  const isPublicPath = publicPaths.some((path) =>
-    nextUrl.pathname.startsWith(path)
-  );
+  const isPublicPath =
+    nextUrl.pathname === "/" ||
+    publicPaths.some((path) => nextUrl.pathname.startsWith(path));
 
   // API認証パスは常に許可
   if (nextUrl.pathname.startsWith("/api/auth")) {
@@ -23,9 +23,9 @@ export default auth((req) => {
     return Response.redirect(new URL("/login", nextUrl));
   }
 
-  // 認証済みでログイン/登録ページにアクセス → /customers にリダイレクト
-  if (isLoggedIn && isPublicPath) {
-    return Response.redirect(new URL("/customers", nextUrl));
+  // 認証済みでログイン/登録ページにアクセス → /dashboard にリダイレクト
+  if (isLoggedIn && (nextUrl.pathname === "/login" || nextUrl.pathname === "/register")) {
+    return Response.redirect(new URL("/dashboard", nextUrl));
   }
 
   return;
