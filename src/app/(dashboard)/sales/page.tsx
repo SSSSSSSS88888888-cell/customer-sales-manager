@@ -183,7 +183,7 @@ export default function SalesPage() {
   // 売上合計を計算
   const totalAmount = sales.reduce((sum, sale) => sum + sale.amount, 0);
 
-  const handleExportCSV = async () => {
+  const handleExportExcel = async () => {
     try {
       const params = new URLSearchParams();
       if (filters.startDate) {
@@ -202,7 +202,7 @@ export default function SalesPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = response.headers.get("Content-Disposition")?.split("filename=")[1]?.replace(/"/g, "") || "sales.csv";
+      a.download = response.headers.get("Content-Disposition")?.split("filename=")[1]?.replace(/"/g, "") || "sales.xlsx";
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -210,7 +210,7 @@ export default function SalesPage() {
 
       toast({
         title: "成功",
-        description: "CSVファイルをダウンロードしました",
+        description: "Excelファイルをダウンロードしました",
       });
     } catch (error) {
       toast({
@@ -232,9 +232,9 @@ export default function SalesPage() {
           <p className="text-slate-600">売上データの登録・編集・削除ができます</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExportCSV}>
+          <Button variant="outline" onClick={handleExportExcel}>
             <Download className="mr-2 h-4 w-4" />
-            CSV
+            Excel
           </Button>
           <Button
             variant="outline"

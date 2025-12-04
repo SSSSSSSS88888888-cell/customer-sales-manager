@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateCSV, formatDateForFilename, formatDateForCSV } from "@/lib/csv";
+import { generateXLSX, formatDateForFilename, formatDateForXLSX } from "@/lib/xlsx";
 
 interface SaleWithCustomer {
   id: string;
@@ -58,20 +58,24 @@ export async function GET(request: Request) {
       orderBy: { saleDate: "desc" },
     });
 
-    const csvContent = generateCSV<SaleWithCustomer>(sales, [
-      { header: "ID", key: "id" },
-      { header: "顧客名", key: (item) => item.customer?.name || "" },
-      { header: "商品名", key: "productName" },
-      { header: "金額", key: (item) => item.amount.toString() },
-      { header: "売上日", key: (item) => formatDateForCSV(item.saleDate) },
-    ]);
+    const xlsxBuffer = generateXLSX<SaleWithCustomer>(
+      sales,
+      [
+        { header: "ID", key: "id", width: 30 },
+        { header: "顧客名", key: (item) => item.customer?.name || "", width: 20 },
+        { header: "商品名", key: "productName", width: 30 },
+        { header: "金額", key: (item) => item.amount, width: 15 },
+        { header: "売上日", key: (item) => formatDateForXLSX(item.saleDate), width: 15 },
+      ],
+      "売上一覧"
+    );
 
-    const filename = `sales_${formatDateForFilename()}.csv`;
+    const filename = `sales_${formatDateForFilename()}.xlsx`;
 
-    return new NextResponse(csvContent, {
+    return new Response(xlsxBuffer as unknown as BodyInit, {
       status: 200,
       headers: {
-        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });

@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+interface CustomerSaleGroup {
+  customerId: string | null;
+  _sum: {
+    amount: number | null;
+  };
+  _count: {
+    id: number;
+  };
+}
+
 export async function GET(request: Request) {
   try {
     const session = await auth();
@@ -29,7 +39,7 @@ export async function GET(request: Request) {
     }
 
     // 顧客別売上を集計
-    const customerSales = await prisma.sale.groupBy({
+    const customerSales = (await prisma.sale.groupBy({
       by: ["customerId"],
       where: {
         userId: session.user.id,
@@ -53,7 +63,7 @@ export async function GET(request: Request) {
         },
       },
       take: 10,
-    });
+    })) as CustomerSaleGroup[];
 
     // 顧客情報を取得
     const customerIds = customerSales
@@ -70,7 +80,7 @@ export async function GET(request: Request) {
       },
     });
 
-    const customerMap = new Map(customers.map((c) => [c.id, c.name]));
+    const customerMap = new Map(customers.map((c: { id: string; name: string }) => [c.id, c.name]));
 
     // ランキングデータを作成
     const ranking = customerSales.map((sale, index) => ({

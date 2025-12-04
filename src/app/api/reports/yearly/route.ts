@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+interface Sale {
+  id: string;
+  amount: number;
+  saleDate: Date;
+}
+
 export async function GET(request: Request) {
   try {
     const session = await auth();
@@ -36,7 +42,7 @@ export async function GET(request: Request) {
     }
 
     // 売上データを月別に集計
-    sales.forEach((sale) => {
+    sales.forEach((sale: Sale) => {
       const month = sale.saleDate.getMonth() + 1;
       monthlyData[month].amount += sale.amount;
       monthlyData[month].count += 1;
@@ -51,7 +57,7 @@ export async function GET(request: Request) {
     }));
 
     // 年間合計
-    const yearlyTotal = sales.reduce((sum, sale) => sum + sale.amount, 0);
+    const yearlyTotal = sales.reduce((sum: number, sale: Sale) => sum + sale.amount, 0);
 
     return NextResponse.json({
       year,

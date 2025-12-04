@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+interface Sale {
+  id: string;
+  amount: number;
+  saleDate: Date;
+}
+
 export async function GET(request: Request) {
   try {
     const session = await auth();
@@ -49,7 +55,7 @@ export async function GET(request: Request) {
     });
 
     // 当月の売上合計
-    const totalAmount = currentMonthSales.reduce((sum, sale) => sum + sale.amount, 0);
+    const totalAmount = currentMonthSales.reduce((sum: number, sale: Sale) => sum + sale.amount, 0);
     const prevTotalAmount = prevMonthSales._sum.amount || 0;
 
     // 前月比（増減率%）
@@ -71,7 +77,7 @@ export async function GET(request: Request) {
     }
 
     // 売上データを日別に集計
-    currentMonthSales.forEach((sale) => {
+    currentMonthSales.forEach((sale: Sale) => {
       const dateKey = sale.saleDate.toISOString().split("T")[0];
       dailyData[dateKey] = (dailyData[dateKey] || 0) + sale.amount;
     });

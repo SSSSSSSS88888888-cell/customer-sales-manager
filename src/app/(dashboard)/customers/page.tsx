@@ -117,7 +117,7 @@ export default function CustomersPage() {
     fetchCustomers(pagination.page, search);
   };
 
-  const handleExportCSV = async () => {
+  const handleExportExcel = async () => {
     try {
       const response = await fetch("/api/export/customers");
       if (!response.ok) {
@@ -128,7 +128,7 @@ export default function CustomersPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = response.headers.get("Content-Disposition")?.split("filename=")[1]?.replace(/"/g, "") || "customers.csv";
+      a.download = response.headers.get("Content-Disposition")?.split("filename=")[1]?.replace(/"/g, "") || "customers.xlsx";
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -136,7 +136,7 @@ export default function CustomersPage() {
 
       toast({
         title: "成功",
-        description: "CSVファイルをダウンロードしました",
+        description: "Excelファイルをダウンロードしました",
       });
     } catch (error) {
       toast({
@@ -160,9 +160,9 @@ export default function CustomersPage() {
           </p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
-          <Button variant="outline" onClick={handleExportCSV}>
+          <Button variant="outline" onClick={handleExportExcel}>
             <Download className="mr-2 h-4 w-4" />
-            CSV
+            Excel
           </Button>
           <Button onClick={handleAdd} className="flex-1 sm:flex-none">
             <Plus className="mr-2 h-4 w-4" />

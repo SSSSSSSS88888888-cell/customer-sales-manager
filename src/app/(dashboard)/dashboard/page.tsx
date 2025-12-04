@@ -4,6 +4,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, TrendingUp, ShoppingCart, Banknote } from "lucide-react";
 import Link from "next/link";
 
+interface RecentSale {
+  id: string;
+  productName: string;
+  amount: number;
+  saleDate: Date;
+  customer: {
+    id: string;
+    name: string;
+  } | null;
+}
+
+interface RecentCustomer {
+  id: string;
+  name: string;
+  email: string | null;
+  createdAt: Date;
+}
+
 export default async function DashboardPage() {
   const session = await auth();
   const userId = session?.user?.id;
@@ -20,12 +38,12 @@ export default async function DashboardPage() {
       include: { customer: true },
       orderBy: { createdAt: "desc" },
       take: 5,
-    }),
+    }) as Promise<RecentSale[]>,
     prisma.customer.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
       take: 5,
-    }),
+    }) as Promise<RecentCustomer[]>,
   ]);
 
   const totalRevenue = Number(salesData._sum.amount || 0);
@@ -121,7 +139,7 @@ export default async function DashboardPage() {
                   売上がまだありません
                 </p>
               ) : (
-                recentSales.map((sale) => (
+                recentSales.map((sale: RecentSale) => (
                   <div
                     key={sale.id}
                     className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0 last:pb-0"
@@ -159,7 +177,7 @@ export default async function DashboardPage() {
                   顧客がまだいません
                 </p>
               ) : (
-                recentCustomers.map((customer) => (
+                recentCustomers.map((customer: RecentCustomer) => (
                   <div
                     key={customer.id}
                     className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0 last:pb-0"
