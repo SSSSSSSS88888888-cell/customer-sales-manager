@@ -50,11 +50,11 @@ export function formatDateForFilename(date: Date = new Date()): string {
   return `${year}${month}${day}`;
 }
 
-// 日付をYYYY-MM-DD形式でフォーマット（ハイフン区切りで日付変換を防ぐ）
+// 日付をYYYY年MM月DD日形式でフォーマット（日本語形式で日付変換を防ぐ）
 export function formatDateForCSV(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  return `${year}年${month}月${day}日`;
 }
