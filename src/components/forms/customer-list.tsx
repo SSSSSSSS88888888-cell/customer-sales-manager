@@ -47,9 +47,8 @@ export function CustomerList({ initialCustomers }: CustomerListProps) {
     name: "",
     email: "",
     phone: "",
-    company: "",
     address: "",
-    notes: "",
+    memo: "",
   });
 
   const resetForm = () => {
@@ -57,9 +56,8 @@ export function CustomerList({ initialCustomers }: CustomerListProps) {
       name: "",
       email: "",
       phone: "",
-      company: "",
       address: "",
-      notes: "",
+      memo: "",
     });
     setEditingCustomer(null);
   };
@@ -83,8 +81,8 @@ export function CustomerList({ initialCustomers }: CustomerListProps) {
       if (!response.ok) throw new Error("Failed to save customer");
 
       toast({
-        title: editingCustomer ? "Customer updated" : "Customer created",
-        description: `${formData.name} has been ${editingCustomer ? "updated" : "added"} successfully.`,
+        title: editingCustomer ? "顧客を更新しました" : "顧客を登録しました",
+        description: `${formData.name} を${editingCustomer ? "更新" : "登録"}しました。`,
       });
 
       setIsOpen(false);
@@ -92,8 +90,8 @@ export function CustomerList({ initialCustomers }: CustomerListProps) {
       router.refresh();
     } catch {
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: "エラー",
+        description: "保存に失敗しました。もう一度お試しください。",
         variant: "destructive",
       });
     } finally {
@@ -107,15 +105,14 @@ export function CustomerList({ initialCustomers }: CustomerListProps) {
       name: customer.name,
       email: customer.email || "",
       phone: customer.phone || "",
-      company: customer.company || "",
       address: customer.address || "",
-      notes: customer.notes || "",
+      memo: customer.memo || "",
     });
     setIsOpen(true);
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this customer?")) return;
+    if (!confirm("この顧客を削除してもよろしいですか？")) return;
 
     try {
       const response = await fetch(`/api/customers/${id}`, {
@@ -126,13 +123,13 @@ export function CustomerList({ initialCustomers }: CustomerListProps) {
 
       setCustomers(customers.filter((c) => c.id !== id));
       toast({
-        title: "Customer deleted",
-        description: "The customer has been deleted successfully.",
+        title: "顧客を削除しました",
+        description: "顧客情報を削除しました。",
       });
     } catch {
       toast({
-        title: "Error",
-        description: "Failed to delete customer.",
+        title: "エラー",
+        description: "削除に失敗しました。",
         variant: "destructive",
       });
     }
@@ -148,24 +145,24 @@ export function CustomerList({ initialCustomers }: CustomerListProps) {
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Add Customer
+              顧客を追加
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>
-                {editingCustomer ? "Edit Customer" : "Add New Customer"}
+                {editingCustomer ? "顧客を編集" : "新規顧客登録"}
               </DialogTitle>
               <DialogDescription>
                 {editingCustomer
-                  ? "Update customer information"
-                  : "Enter the details for the new customer"}
+                  ? "顧客情報を更新します"
+                  : "新しい顧客の情報を入力してください"}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Name *</Label>
+                  <Label htmlFor="name">名前（会社名/個人名） *</Label>
                   <Input
                     id="name"
                     value={formData.name}
@@ -176,7 +173,7 @@ export function CustomerList({ initialCustomers }: CustomerListProps) {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">メールアドレス</Label>
                   <Input
                     id="email"
                     type="email"
@@ -187,7 +184,7 @@ export function CustomerList({ initialCustomers }: CustomerListProps) {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone">電話番号</Label>
                   <Input
                     id="phone"
                     value={formData.phone}
@@ -197,17 +194,7 @@ export function CustomerList({ initialCustomers }: CustomerListProps) {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="company">Company</Label>
-                  <Input
-                    id="company"
-                    value={formData.company}
-                    onChange={(e) =>
-                      setFormData({ ...formData, company: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="address">Address</Label>
+                  <Label htmlFor="address">住所</Label>
                   <Input
                     id="address"
                     value={formData.address}
@@ -217,19 +204,19 @@ export function CustomerList({ initialCustomers }: CustomerListProps) {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="notes">Notes</Label>
+                  <Label htmlFor="memo">メモ</Label>
                   <Input
-                    id="notes"
-                    value={formData.notes}
+                    id="memo"
+                    value={formData.memo}
                     onChange={(e) =>
-                      setFormData({ ...formData, notes: e.target.value })
+                      setFormData({ ...formData, memo: e.target.value })
                     }
                   />
                 </div>
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Saving..." : editingCustomer ? "Update" : "Create"}
+                  {isLoading ? "保存中..." : editingCustomer ? "更新" : "登録"}
                 </Button>
               </DialogFooter>
             </form>
@@ -241,10 +228,10 @@ export function CustomerList({ initialCustomers }: CustomerListProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Company</TableHead>
+              <TableHead>名前</TableHead>
+              <TableHead>メールアドレス</TableHead>
+              <TableHead>電話番号</TableHead>
+              <TableHead>住所</TableHead>
               <TableHead className="w-[70px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -252,9 +239,9 @@ export function CustomerList({ initialCustomers }: CustomerListProps) {
             {customers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8">
-                  <p className="text-muted-foreground">No customers yet</p>
+                  <p className="text-muted-foreground">顧客がまだ登録されていません</p>
                   <p className="text-sm text-muted-foreground">
-                    Add your first customer to get started
+                    最初の顧客を登録しましょう
                   </p>
                 </TableCell>
               </TableRow>
@@ -264,7 +251,7 @@ export function CustomerList({ initialCustomers }: CustomerListProps) {
                   <TableCell className="font-medium">{customer.name}</TableCell>
                   <TableCell>{customer.email || "-"}</TableCell>
                   <TableCell>{customer.phone || "-"}</TableCell>
-                  <TableCell>{customer.company || "-"}</TableCell>
+                  <TableCell>{customer.address || "-"}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -275,14 +262,14 @@ export function CustomerList({ initialCustomers }: CustomerListProps) {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleEdit(customer)}>
                           <Pencil className="mr-2 h-4 w-4" />
-                          Edit
+                          編集
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(customer.id)}
                           className="text-destructive"
                         >
                           <Trash className="mr-2 h-4 w-4" />
-                          Delete
+                          削除
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

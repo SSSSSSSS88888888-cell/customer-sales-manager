@@ -30,22 +30,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, MoreHorizontal, Pencil, Trash } from "lucide-react";
-import type { Sale, Customer, SaleStatus } from "@/types";
+import type { Sale, Customer } from "@/types";
 
 interface SaleWithCustomer extends Sale {
-  customer: Customer;
+  customer: Customer | null;
 }
 
 interface SaleListProps {
   initialSales: SaleWithCustomer[];
   customers: Customer[];
 }
-
-const statusColors: Record<SaleStatus, string> = {
-  PENDING: "bg-yellow-100 text-yellow-800",
-  COMPLETED: "bg-green-100 text-green-800",
-  CANCELLED: "bg-red-100 text-red-800",
-};
 
 export function SaleList({ initialSales, customers }: SaleListProps) {
   const router = useRouter();
@@ -56,19 +50,19 @@ export function SaleList({ initialSales, customers }: SaleListProps) {
   const [editingSale, setEditingSale] = useState<SaleWithCustomer | null>(null);
   const [formData, setFormData] = useState({
     customerId: "",
+    productName: "",
     amount: "",
-    description: "",
     saleDate: new Date().toISOString().split("T")[0],
-    status: "PENDING" as SaleStatus,
+    memo: "",
   });
 
   const resetForm = () => {
     setFormData({
       customerId: "",
+      productName: "",
       amount: "",
-      description: "",
       saleDate: new Date().toISOString().split("T")[0],
-      status: "PENDING",
+      memo: "",
     });
     setEditingSale(null);
   };
@@ -86,15 +80,16 @@ export function SaleList({ initialSales, customers }: SaleListProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          amount: parseFloat(formData.amount),
+          customerId: formData.customerId || null,
+          amount: parseInt(formData.amount, 10),
         }),
       });
 
       if (!response.ok) throw new Error("Failed to save sale");
 
       toast({
-        title: editingSale ? "Sale updated" : "Sale created",
-        description: `Sale has been ${editingSale ? "updated" : "added"} successfully.`,
+        title: editingSale ? "売上を更新しました" : "売上を登録しました",
+        description: `売上情報を${editingSale ? "更新" : "登録"}しました。`,
       });
 
       setIsOpen(false);
@@ -102,8 +97,8 @@ export function SaleList({ initialSales, customers }: SaleListProps) {
       router.refresh();
     } catch {
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: "エラー",
+        description: "保存に失敗しました。もう一度お試しください。",
         variant: "destructive",
       });
     } finally {
@@ -114,17 +109,17 @@ export function SaleList({ initialSales, customers }: SaleListProps) {
   const handleEdit = (sale: SaleWithCustomer) => {
     setEditingSale(sale);
     setFormData({
-      customerId: sale.customerId,
+      customerId: sale.customerId || "",
+      productName: sale.productName,
       amount: String(sale.amount),
-      description: sale.description || "",
       saleDate: new Date(sale.saleDate).toISOString().split("T")[0],
-      status: sale.status,
+      memo: sale.memo || "",
     });
     setIsOpen(true);
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this sale?")) return;
+    if (!confirm("この売上を削除してもよろしいですか？")) return;
 
     try {
       const response = await fetch(`/api/sales/${id}`, {
@@ -135,13 +130,13 @@ export function SaleList({ initialSales, customers }: SaleListProps) {
 
       setSales(sales.filter((s) => s.id !== id));
       toast({
-        title: "Sale deleted",
-        description: "The sale has been deleted successfully.",
+        title: "売上を削除しました",
+        description: "売上情報を削除しました。",
       });
     } catch {
       toast({
-        title: "Error",
-        description: "Failed to delete sale.",
+        title: "エラー",
+        description: "削除に失敗しました。",
         variant: "destructive",
       });
     }
@@ -155,50 +150,41 @@ export function SaleList({ initialSales, customers }: SaleListProps) {
           if (!open) resetForm();
         }}>
           <DialogTrigger asChild>
-            <Button disabled={customers.length === 0}>
+            <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Add Sale
+              売上を追加
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>
-                {editingSale ? "Edit Sale" : "Add New Sale"}
+                {editingSale ? "売上を編集" : "新規売上登録"}
               </DialogTitle>
               <DialogDescription>
                 {editingSale
-                  ? "Update sale information"
-                  : "Enter the details for the new sale"}
+                  ? "売上情報を更新します"
+                  : "新しい売上の情報を入力してください"}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="customer">Customer *</Label>
-                  <select
-                    id="customer"
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    value={formData.customerId}
+                  <Label htmlFor="productName">商品名 *</Label>
+                  <Input
+                    id="productName"
+                    value={formData.productName}
                     onChange={(e) =>
-                      setFormData({ ...formData, customerId: e.target.value })
+                      setFormData({ ...formData, productName: e.target.value })
                     }
                     required
-                  >
-                    <option value="">Select a customer</option>
-                    {customers.map((customer) => (
-                      <option key={customer.id} value={customer.id}>
-                        {customer.name}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="amount">Amount *</Label>
+                  <Label htmlFor="amount">金額（円） *</Label>
                   <Input
                     id="amount"
                     type="number"
-                    step="0.01"
-                    min="0"
+                    min="1"
                     value={formData.amount}
                     onChange={(e) =>
                       setFormData({ ...formData, amount: e.target.value })
@@ -207,7 +193,7 @@ export function SaleList({ initialSales, customers }: SaleListProps) {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="saleDate">Sale Date *</Label>
+                  <Label htmlFor="saleDate">売上日 *</Label>
                   <Input
                     id="saleDate"
                     type="date"
@@ -219,37 +205,37 @@ export function SaleList({ initialSales, customers }: SaleListProps) {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="status">Status</Label>
+                  <Label htmlFor="customer">顧客（任意）</Label>
                   <select
-                    id="status"
+                    id="customer"
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    value={formData.status}
+                    value={formData.customerId}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        status: e.target.value as SaleStatus,
-                      })
+                      setFormData({ ...formData, customerId: e.target.value })
                     }
                   >
-                    <option value="PENDING">Pending</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="CANCELLED">Cancelled</option>
+                    <option value="">顧客を選択（任意）</option>
+                    {customers.map((customer) => (
+                      <option key={customer.id} value={customer.id}>
+                        {customer.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="memo">メモ</Label>
                   <Input
-                    id="description"
-                    value={formData.description}
+                    id="memo"
+                    value={formData.memo}
                     onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
+                      setFormData({ ...formData, memo: e.target.value })
                     }
                   />
                 </div>
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Saving..." : editingSale ? "Update" : "Create"}
+                  {isLoading ? "保存中..." : editingSale ? "更新" : "登録"}
                 </Button>
               </DialogFooter>
             </form>
@@ -257,21 +243,15 @@ export function SaleList({ initialSales, customers }: SaleListProps) {
         </Dialog>
       </div>
 
-      {customers.length === 0 && (
-        <div className="text-center py-4 text-muted-foreground">
-          Please add a customer first before creating sales.
-        </div>
-      )}
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Customer</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Description</TableHead>
+              <TableHead>商品名</TableHead>
+              <TableHead>金額</TableHead>
+              <TableHead>売上日</TableHead>
+              <TableHead>顧客</TableHead>
+              <TableHead>メモ</TableHead>
               <TableHead className="w-[70px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -279,9 +259,9 @@ export function SaleList({ initialSales, customers }: SaleListProps) {
             {sales.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8">
-                  <p className="text-muted-foreground">No sales yet</p>
+                  <p className="text-muted-foreground">売上がまだ登録されていません</p>
                   <p className="text-sm text-muted-foreground">
-                    Add your first sale to get started
+                    最初の売上を登録しましょう
                   </p>
                 </TableCell>
               </TableRow>
@@ -289,20 +269,14 @@ export function SaleList({ initialSales, customers }: SaleListProps) {
               sales.map((sale) => (
                 <TableRow key={sale.id}>
                   <TableCell className="font-medium">
-                    {sale.customer.name}
+                    {sale.productName}
                   </TableCell>
-                  <TableCell>${Number(sale.amount).toLocaleString()}</TableCell>
+                  <TableCell>¥{Number(sale.amount).toLocaleString()}</TableCell>
                   <TableCell>
-                    {new Date(sale.saleDate).toLocaleDateString()}
+                    {new Date(sale.saleDate).toLocaleDateString("ja-JP")}
                   </TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[sale.status]}`}
-                    >
-                      {sale.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>{sale.description || "-"}</TableCell>
+                  <TableCell>{sale.customer?.name || "-"}</TableCell>
+                  <TableCell>{sale.memo || "-"}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -313,14 +287,14 @@ export function SaleList({ initialSales, customers }: SaleListProps) {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleEdit(sale)}>
                           <Pencil className="mr-2 h-4 w-4" />
-                          Edit
+                          編集
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(sale.id)}
                           className="text-destructive"
                         >
                           <Trash className="mr-2 h-4 w-4" />
-                          Delete
+                          削除
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

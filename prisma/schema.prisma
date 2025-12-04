@@ -8,24 +8,31 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ==========================================
+// User（ユーザー）
+// ==========================================
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  password      String?
-  image         String?
-  role          Role      @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  accounts      Account[]
-  sessions      Session[]
-  customers     Customer[]
-  sales         Sale[]
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String?  // OAuth用にnullable
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // NextAuth.js用リレーション
+  accounts  Account[]
+  sessions  Session[]
+
+  // ビジネスロジック用リレーション
+  customers Customer[]
+  sales     Sale[]
 }
 
+// ==========================================
+// NextAuth.js用テーブル
+// ==========================================
 model Account {
-  id                String  @id @default(cuid())
+  id                String  @id @default(uuid())
   userId            String
   type              String
   provider          String
@@ -44,7 +51,7 @@ model Account {
 }
 
 model Session {
-  id           String   @id @default(cuid())
+  id           String   @id @default(uuid())
   sessionToken String   @unique
   userId       String
   expires      DateTime
@@ -59,47 +66,43 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// ==========================================
+// Customer（顧客）
+// ==========================================
 model Customer {
-  id        String   @id @default(cuid())
-  name      String
+  id        String   @id @default(uuid())
+  userId    String
+  name      String   // 会社名/個人名
   email     String?
   phone     String?
-  company   String?
   address   String?
-  notes     String?  @db.Text
+  memo      String?  @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sales     Sale[]
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sales Sale[]
 
   @@index([userId])
 }
 
+// ==========================================
+// Sale（売上）
+// ==========================================
 model Sale {
-  id          String   @id @default(cuid())
-  amount      Decimal  @db.Decimal(10, 2)
-  description String?
-  saleDate    DateTime @default(now())
-  status      SaleStatus @default(PENDING)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  customerId  String
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  id          String    @id @default(uuid())
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customerId  String?   // nullable（顧客未登録の売上も可能）
+  productName String
+  amount      Int       // 円単位
+  saleDate    DateTime
+  memo        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  @@index([customerId])
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
   @@index([userId])
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-
-enum SaleStatus {
-  PENDING
-  COMPLETED
-  CANCELLED
+  @@index([customerId])
 }

@@ -5,12 +5,11 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const customerSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, "名前は必須です"),
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
-  company: z.string().optional(),
   address: z.string().optional(),
-  notes: z.string().optional(),
+  memo: z.string().optional(),
 });
 
 export async function GET() {
@@ -49,8 +48,11 @@ export async function POST(request: Request) {
 
     const customer = await prisma.customer.create({
       data: {
-        ...data,
+        name: data.name,
         email: data.email || null,
+        phone: data.phone || null,
+        address: data.address || null,
+        memo: data.memo || null,
         userId: session.user.id,
       },
     });

@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, DollarSign, TrendingUp, ShoppingCart } from "lucide-react";
+import { Users, TrendingUp, ShoppingCart, Banknote } from "lucide-react";
 
 export default async function ReportsPage() {
   const session = await getServerSession(authOptions);
@@ -11,7 +11,7 @@ export default async function ReportsPage() {
   const [customerCount, salesData, recentSales] = await Promise.all([
     prisma.customer.count({ where: { userId } }),
     prisma.sale.aggregate({
-      where: { userId, status: "COMPLETED" },
+      where: { userId },
       _sum: { amount: true },
       _count: true,
     }),
@@ -29,9 +29,9 @@ export default async function ReportsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Reports</h2>
+        <h2 className="text-2xl font-bold tracking-tight">レポート</h2>
         <p className="text-muted-foreground">
-          Overview of your business performance
+          ビジネスパフォーマンスの概要
         </p>
       </div>
 
@@ -39,7 +39,7 @@ export default async function ReportsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Customers
+              総顧客数
             </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -49,7 +49,7 @@ export default async function ReportsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
+            <CardTitle className="text-sm font-medium">総売上件数</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -58,25 +58,25 @@ export default async function ReportsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">総売上金額</CardTitle>
+            <Banknote className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${totalRevenue.toLocaleString()}
+              ¥{totalRevenue.toLocaleString()}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Average Sale
+              平均売上金額
             </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${totalSales > 0 ? (totalRevenue / totalSales).toFixed(2) : "0"}
+              ¥{totalSales > 0 ? Math.round(totalRevenue / totalSales).toLocaleString() : "0"}
             </div>
           </CardContent>
         </Card>
@@ -84,13 +84,13 @@ export default async function ReportsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Sales</CardTitle>
+          <CardTitle>最近の売上</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {recentSales.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">
-                No sales yet
+                売上がまだありません
               </p>
             ) : (
               recentSales.map((sale) => (
@@ -99,17 +99,17 @@ export default async function ReportsPage() {
                   className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0"
                 >
                   <div>
-                    <p className="font-medium">{sale.customer.name}</p>
+                    <p className="font-medium">{sale.productName}</p>
                     <p className="text-sm text-muted-foreground">
-                      {sale.description || "No description"}
+                      {sale.customer?.name || "顧客未設定"}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="font-medium">
-                      ${Number(sale.amount).toLocaleString()}
+                      ¥{Number(sale.amount).toLocaleString()}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(sale.saleDate).toLocaleDateString()}
+                      {new Date(sale.saleDate).toLocaleDateString("ja-JP")}
                     </p>
                   </div>
                 </div>

@@ -5,11 +5,11 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const saleSchema = z.object({
-  customerId: z.string().min(1, "Customer is required"),
-  amount: z.number().positive("Amount must be positive"),
-  description: z.string().optional(),
+  customerId: z.string().optional().nullable(),
+  productName: z.string().min(1, "商品名は必須です"),
+  amount: z.number().int().positive("金額は正の整数である必要があります"),
   saleDate: z.string().or(z.date()),
-  status: z.enum(["PENDING", "COMPLETED", "CANCELLED"]).default("PENDING"),
+  memo: z.string().optional(),
 });
 
 export async function GET(
@@ -70,25 +70,28 @@ export async function PUT(
     const body = await request.json();
     const data = saleSchema.parse(body);
 
-    const customer = await prisma.customer.findFirst({
-      where: {
-        id: data.customerId,
-        userId: session.user.id,
-      },
-    });
+    // 顧客IDが指定されている場合は存在確認
+    if (data.customerId) {
+      const customer = await prisma.customer.findFirst({
+        where: {
+          id: data.customerId,
+          userId: session.user.id,
+        },
+      });
 
-    if (!customer) {
-      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+      if (!customer) {
+        return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+      }
     }
 
     const sale = await prisma.sale.update({
       where: { id: params.id },
       data: {
-        customerId: data.customerId,
+        productName: data.productName,
         amount: data.amount,
-        description: data.description || null,
         saleDate: new Date(data.saleDate),
-        status: data.status,
+        memo: data.memo || null,
+        customerId: data.customerId || null,
       },
       include: { customer: true },
     });

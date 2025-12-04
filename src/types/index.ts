@@ -1,31 +1,37 @@
+// ==========================================
+// Customer（顧客）
+// ==========================================
 export interface Customer {
   id: string;
-  name: string;
+  userId: string;
+  name: string;        // 会社名/個人名
   email: string | null;
   phone: string | null;
-  company: string | null;
   address: string | null;
-  notes: string | null;
+  memo: string | null;
   createdAt: Date;
   updatedAt: Date;
-  userId: string;
 }
 
+// ==========================================
+// Sale（売上）
+// ==========================================
 export interface Sale {
   id: string;
-  amount: number;
-  description: string | null;
+  userId: string;
+  customerId: string | null;
+  productName: string;
+  amount: number;      // 円単位
   saleDate: Date;
-  status: SaleStatus;
+  memo: string | null;
   createdAt: Date;
   updatedAt: Date;
-  customerId: string;
-  userId: string;
-  customer?: Customer;
+  customer?: Customer | null;
 }
 
-export type SaleStatus = "PENDING" | "COMPLETED" | "CANCELLED";
-
+// ==========================================
+// Dashboard統計
+// ==========================================
 export interface DashboardStats {
   totalCustomers: number;
   totalSales: number;
