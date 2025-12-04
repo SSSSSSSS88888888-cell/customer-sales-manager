@@ -22,7 +22,7 @@ async function main() {
   console.log(`Created user: ${user.email}`);
 
   // 顧客データの作成
-  const customers = [
+  const customersData = [
     { name: "田中太郎", email: "tanaka@example.com", phone: "03-1234-5678", address: "東京都渋谷区1-1-1" },
     { name: "佐藤花子", email: "sato@example.com", phone: "03-2345-6789", address: "東京都新宿区2-2-2" },
     { name: "鈴木一郎", email: "suzuki@example.com", phone: "03-3456-7890", address: "東京都港区3-3-3" },
@@ -33,22 +33,27 @@ async function main() {
     { name: "小林真理", email: "kobayashi@example.com", phone: "03-8901-2345", address: "東京都杉並区8-8-8" },
   ];
 
-  const createdCustomers = [];
-  for (const customer of customers) {
-    const created = await prisma.customer.upsert({
-      where: {
-        userId_email: { userId: user.id, email: customer.email }
-      },
-      update: {},
-      create: {
-        ...customer,
-        userId: user.id,
-      },
-    });
-    createdCustomers.push(created);
-  }
+  // 既存の顧客を削除してから作成（売上データも自動的に削除される）
+  await prisma.sale.deleteMany({
+    where: { userId: user.id },
+  });
+  await prisma.customer.deleteMany({
+    where: { userId: user.id },
+  });
 
-  console.log(`Created ${createdCustomers.length} customers`);
+  const createdCustomers = await prisma.customer.createMany({
+    data: customersData.map((customer) => ({
+      ...customer,
+      userId: user.id,
+    })),
+  });
+
+  // 作成した顧客を取得
+  const customers = await prisma.customer.findMany({
+    where: { userId: user.id },
+  });
+
+  console.log(`Created ${customers.length} customers`);
 
   // 売上データの作成（過去3ヶ月分）
   const products = [
@@ -69,7 +74,7 @@ async function main() {
     const numSales = Math.floor(Math.random() * 10) + 5; // 5-15件/月
 
     for (let i = 0; i < numSales; i++) {
-      const customer = createdCustomers[Math.floor(Math.random() * createdCustomers.length)];
+      const customer = customers[Math.floor(Math.random() * customers.length)];
       const product = products[Math.floor(Math.random() * products.length)];
       const amount = Math.floor(Math.random() * 50 + 5) * 10000; // 5万〜55万円
 
@@ -84,11 +89,6 @@ async function main() {
       });
     }
   }
-
-  // 既存の売上を削除してから作成
-  await prisma.sale.deleteMany({
-    where: { userId: user.id },
-  });
 
   await prisma.sale.createMany({
     data: salesData,
