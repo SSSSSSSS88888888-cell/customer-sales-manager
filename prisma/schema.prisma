@@ -12,12 +12,14 @@ datasource db {
 // User（ユーザー）
 // ==========================================
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String?  // OAuth用にnullable
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String?   // OAuth用にnullable
+  name          String
+  image         String?   // プロフィール画像URL
+  emailVerified DateTime? // メール確認日時
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // NextAuth.js用リレーション
   accounts  Account[]
