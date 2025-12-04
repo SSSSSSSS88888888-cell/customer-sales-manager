@@ -14,7 +14,7 @@ import {
 import { SaleForm, type Sale, type Customer } from "@/components/forms/SaleForm";
 import { SalesTable } from "@/components/SalesTable";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Filter, X, Loader2 } from "lucide-react";
+import { Plus, Filter, X, Loader2, Download } from "lucide-react";
 
 interface Pagination {
   total: number;
@@ -183,6 +183,44 @@ export default function SalesPage() {
   // 売上合計を計算
   const totalAmount = sales.reduce((sum, sale) => sum + sale.amount, 0);
 
+  const handleExportCSV = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (filters.startDate) {
+        params.append("startDate", filters.startDate);
+      }
+      if (filters.endDate) {
+        params.append("endDate", filters.endDate);
+      }
+
+      const response = await fetch(`/api/export/sales?${params}`);
+      if (!response.ok) {
+        throw new Error("エクスポートに失敗しました");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = response.headers.get("Content-Disposition")?.split("filename=")[1]?.replace(/"/g, "") || "sales.csv";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "成功",
+        description: "CSVファイルをダウンロードしました",
+      });
+    } catch (error) {
+      toast({
+        title: "エラー",
+        description: error instanceof Error ? error.message : "エクスポートに失敗しました",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* ヘッダー */}
@@ -194,6 +232,10 @@ export default function SalesPage() {
           <p className="text-slate-600">売上データの登録・編集・削除ができます</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExportCSV}>
+            <Download className="mr-2 h-4 w-4" />
+            CSV
+          </Button>
           <Button
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}

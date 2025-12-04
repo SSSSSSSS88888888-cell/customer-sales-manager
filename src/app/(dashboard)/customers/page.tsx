@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { CustomerForm, type Customer } from "@/components/forms/CustomerForm";
 import { CustomerTable } from "@/components/CustomerTable";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Plus, Search, Loader2, Download } from "lucide-react";
 
 interface Pagination {
   total: number;
@@ -117,6 +117,36 @@ export default function CustomersPage() {
     fetchCustomers(pagination.page, search);
   };
 
+  const handleExportCSV = async () => {
+    try {
+      const response = await fetch("/api/export/customers");
+      if (!response.ok) {
+        throw new Error("エクスポートに失敗しました");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = response.headers.get("Content-Disposition")?.split("filename=")[1]?.replace(/"/g, "") || "customers.csv";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "成功",
+        description: "CSVファイルをダウンロードしました",
+      });
+    } catch (error) {
+      toast({
+        title: "エラー",
+        description: error instanceof Error ? error.message : "エクスポートに失敗しました",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* ヘッダー */}
@@ -129,10 +159,16 @@ export default function CustomersPage() {
             顧客情報の登録・編集・削除ができます
           </p>
         </div>
-        <Button onClick={handleAdd} className="w-full sm:w-auto">
-          <Plus className="mr-2 h-4 w-4" />
-          顧客を追加
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button variant="outline" onClick={handleExportCSV}>
+            <Download className="mr-2 h-4 w-4" />
+            CSV
+          </Button>
+          <Button onClick={handleAdd} className="flex-1 sm:flex-none">
+            <Plus className="mr-2 h-4 w-4" />
+            顧客を追加
+          </Button>
+        </div>
       </div>
 
       {/* 検索 */}
