@@ -50,12 +50,11 @@ export function formatDateForFilename(date: Date = new Date()): string {
   return `${year}${month}${day}`;
 }
 
-// 日付をYYYY/MM/DD形式でフォーマット（テキストとして扱う）
+// 日付をYYYY-MM-DD形式でフォーマット（ハイフン区切りで日付変換を防ぐ）
 export function formatDateForCSV(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
-  // シングルクォートを先頭に付けてExcelにテキストとして認識させる
-  return `'${year}/${month}/${day}`;
+  return `${year}-${month}-${day}`;
 }
