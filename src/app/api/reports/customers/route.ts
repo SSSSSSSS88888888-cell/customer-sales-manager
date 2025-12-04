@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     }
 
     // 顧客別売上を集計
-    const customerSales = (await prisma.sale.groupBy({
+    const customerSales = await prisma.sale.groupBy({
       by: ["customerId"],
       where: {
         userId: session.user.id,
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
         },
       },
       take: 10,
-    })) as CustomerSaleGroup[];
+    }) as unknown as CustomerSaleGroup[];
 
     // 顧客情報を取得
     const customerIds = customerSales
