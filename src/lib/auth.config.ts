@@ -29,9 +29,9 @@ export const authConfig: NextAuthConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const publicPaths = ["/login", "/register"];
-      const isPublicPath = publicPaths.some((path) =>
-        nextUrl.pathname.startsWith(path)
-      );
+      const isPublicPath =
+        nextUrl.pathname === "/" ||
+        publicPaths.some((path) => nextUrl.pathname.startsWith(path));
 
       if (nextUrl.pathname.startsWith("/api/auth")) {
         return true;
@@ -41,8 +41,9 @@ export const authConfig: NextAuthConfig = {
         return false;
       }
 
-      if (isLoggedIn && isPublicPath) {
-        return Response.redirect(new URL("/customers", nextUrl));
+      // ログイン済みで/login, /registerにアクセスした場合はダッシュボードへ
+      if (isLoggedIn && (nextUrl.pathname === "/login" || nextUrl.pathname === "/register")) {
+        return Response.redirect(new URL("/dashboard", nextUrl));
       }
 
       return true;
