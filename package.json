@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
     "@auth/prisma-adapter": "^2.11.1",
     "@prisma/client": "5.20.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",
