@@ -55,25 +55,25 @@ async function cleanupGuests() {
     const guestIds = expiredGuests.map((g) => g.id);
 
     // 関連データを削除（カスケード削除されるが明示的に実行）
-    // 売上データを先に削除
-    const deletedSales = await prisma.sale.deleteMany({
+    // 仕訳データを先に削除
+    const deletedJournals = await prisma.journal.deleteMany({
       where: {
         userId: {
           in: guestIds,
         },
       },
     });
-    console.log(`Deleted ${deletedSales.count} sales records.`);
+    console.log(`Deleted ${deletedJournals.count} journal entries.`);
 
-    // 顧客データを削除
-    const deletedCustomers = await prisma.customer.deleteMany({
+    // 勘定科目データを削除
+    const deletedChartOfAccounts = await prisma.chartOfAccount.deleteMany({
       where: {
         userId: {
           in: guestIds,
         },
       },
     });
-    console.log(`Deleted ${deletedCustomers.count} customers.`);
+    console.log(`Deleted ${deletedChartOfAccounts.count} chart of accounts.`);
 
     // セッションを削除
     const deletedSessions = await prisma.session.deleteMany({
@@ -85,7 +85,7 @@ async function cleanupGuests() {
     });
     console.log(`Deleted ${deletedSessions.count} sessions.`);
 
-    // アカウントを削除
+    // アカウント（OAuth）を削除
     const deletedAccounts = await prisma.account.deleteMany({
       where: {
         userId: {

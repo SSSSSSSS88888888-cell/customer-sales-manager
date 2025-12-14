@@ -40,11 +40,11 @@ export async function GET(request: Request) {
     const guestIds = expiredGuests.map((g) => g.id);
 
     // 関連データを削除
-    await prisma.sale.deleteMany({
+    await prisma.journal.deleteMany({
       where: { userId: { in: guestIds } },
     });
 
-    await prisma.customer.deleteMany({
+    await prisma.chartOfAccount.deleteMany({
       where: { userId: { in: guestIds } },
     });
 
