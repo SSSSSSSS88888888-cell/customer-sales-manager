@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, Download, CheckCircle, AlertCircle } from "lucide-react";
+import { FileText, Download, CheckCircle, AlertCircle, FileSpreadsheet } from "lucide-react";
+import { exportBSToPDF, exportBSToExcel } from "@/lib/export";
 
 interface AccountBalance {
   code: string;
@@ -94,12 +95,22 @@ export default function BalanceSheetPage() {
               className="w-40"
             />
           </div>
-          <Button variant="outline" className="gap-2">
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => data && exportBSToPDF(data)}
+            disabled={!data}
+          >
             <Download className="h-4 w-4" />
             PDF出力
           </Button>
-          <Button variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => data && exportBSToExcel(data)}
+            disabled={!data}
+          >
+            <FileSpreadsheet className="h-4 w-4" />
             Excel出力
           </Button>
         </div>

@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PieChart, Download, TrendingUp, TrendingDown } from "lucide-react";
+import { PieChart, Download, TrendingUp, TrendingDown, FileSpreadsheet } from "lucide-react";
+import { exportPLToPDF, exportPLToExcel } from "@/lib/export";
 
 interface PLData {
   period: { startDate: string; endDate: string };
@@ -104,12 +105,22 @@ export default function ProfitLossPage() {
               className="w-36"
             />
           </div>
-          <Button variant="outline" className="gap-2">
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => data && exportPLToPDF(data)}
+            disabled={!data}
+          >
             <Download className="h-4 w-4" />
             PDF出力
           </Button>
-          <Button variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => data && exportPLToExcel(data)}
+            disabled={!data}
+          >
+            <FileSpreadsheet className="h-4 w-4" />
             Excel出力
           </Button>
         </div>

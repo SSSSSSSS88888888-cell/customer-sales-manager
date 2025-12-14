@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TrendingUp, Download, ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { TrendingUp, Download, ArrowUp, ArrowDown, Minus, FileSpreadsheet } from "lucide-react";
+import { exportCFToPDF, exportCFToExcel } from "@/lib/export";
 
 interface CashFlowItem {
   description: string;
@@ -126,12 +127,70 @@ export default function CashFlowPage() {
               className="w-36"
             />
           </div>
-          <Button variant="outline" className="gap-2">
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => {
+              if (data) {
+                const exportData = {
+                  period: data.period,
+                  operating: {
+                    items: data.operating.items.map(i => ({ name: i.description, amount: i.amount })),
+                    total: data.summary.operatingTotal,
+                  },
+                  investing: {
+                    items: data.investing.items.map(i => ({ name: i.description, amount: i.amount })),
+                    total: data.summary.investingTotal,
+                  },
+                  financing: {
+                    items: data.financing.items.map(i => ({ name: i.description, amount: i.amount })),
+                    total: data.summary.financingTotal,
+                  },
+                  summary: {
+                    netCashFlow: data.summary.netChange,
+                    beginningCash: data.summary.beginningBalance,
+                    endingCash: data.summary.endingBalance,
+                  },
+                };
+                exportCFToPDF(exportData);
+              }
+            }}
+            disabled={!data}
+          >
             <Download className="h-4 w-4" />
             PDF出力
           </Button>
-          <Button variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => {
+              if (data) {
+                const exportData = {
+                  period: data.period,
+                  operating: {
+                    items: data.operating.items.map(i => ({ name: i.description, amount: i.amount })),
+                    total: data.summary.operatingTotal,
+                  },
+                  investing: {
+                    items: data.investing.items.map(i => ({ name: i.description, amount: i.amount })),
+                    total: data.summary.investingTotal,
+                  },
+                  financing: {
+                    items: data.financing.items.map(i => ({ name: i.description, amount: i.amount })),
+                    total: data.summary.financingTotal,
+                  },
+                  summary: {
+                    netCashFlow: data.summary.netChange,
+                    beginningCash: data.summary.beginningBalance,
+                    endingCash: data.summary.endingBalance,
+                  },
+                };
+                exportCFToExcel(exportData);
+              }
+            }}
+            disabled={!data}
+          >
+            <FileSpreadsheet className="h-4 w-4" />
             Excel出力
           </Button>
         </div>
