@@ -69,21 +69,21 @@ export async function GET(request: NextRequest) {
 
     // 損益計算（収益 - 費用 = 当期純利益）
     let netIncome = 0;
-    for (const [, data] of balances) {
+    Array.from(balances.values()).forEach((data) => {
       if (data.account.type === "REVENUE") {
         netIncome += data.balance;
       } else if (data.account.type === "EXPENSE") {
         netIncome -= data.balance;
       }
-    }
+    });
 
     // カテゴリ別に分類
     const assets: AccountBalance[] = [];
     const liabilities: AccountBalance[] = [];
     const equity: AccountBalance[] = [];
 
-    for (const [, data] of balances) {
-      if (data.balance === 0) continue;
+    Array.from(balances.values()).forEach((data) => {
+      if (data.balance === 0) return;
 
       const item: AccountBalance = {
         code: data.account.code,
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
       } else if (data.account.type === "EQUITY") {
         equity.push(item);
       }
-    }
+    });
 
     // コード順にソート
     assets.sort((a, b) => a.code.localeCompare(b.code));

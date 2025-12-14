@@ -81,9 +81,9 @@ export async function GET(request: NextRequest) {
     const revenues: AccountBalance[] = [];
     const expenses: AccountBalance[] = [];
 
-    for (const [, data] of amounts) {
-      if (data.amount === 0) continue;
-      if (data.account.type !== "REVENUE" && data.account.type !== "EXPENSE") continue;
+    Array.from(amounts.values()).forEach((data) => {
+      if (data.amount === 0) return;
+      if (data.account.type !== "REVENUE" && data.account.type !== "EXPENSE") return;
 
       const item: AccountBalance = {
         code: data.account.code,
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
       } else {
         expenses.push(item);
       }
-    }
+    });
 
     // コード順にソート
     revenues.sort((a, b) => a.code.localeCompare(b.code));
