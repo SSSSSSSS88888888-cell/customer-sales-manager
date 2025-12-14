@@ -1,51 +1,176 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { nanoid } from "nanoid";
+import { AccountType } from "@prisma/client";
 
-// ゲストユーザー用サンプルデータ
-const GUEST_CUSTOMERS = [
-  { name: "株式会社サンプル商事", email: "sample@example.com", phone: "03-1111-2222", address: "東京都渋谷区1-1-1" },
-  { name: "田中デザイン事務所", email: "tanaka-design@example.com", phone: "03-2222-3333", address: "東京都新宿区2-2-2" },
-  { name: "ABC株式会社", email: "abc@example.com", phone: "03-3333-4444", address: "東京都港区3-3-3" },
-  { name: "山田製作所", email: "yamada@example.com", phone: "03-4444-5555", address: "大阪府大阪市4-4-4" },
-  { name: "グローバルトレード合同会社", email: "global@example.com", phone: "03-5555-6666", address: "東京都千代田区5-5-5" },
+// 標準勘定科目マスタ
+const STANDARD_ACCOUNTS: {
+  code: string;
+  name: string;
+  type: AccountType;
+  category: string;
+}[] = [
+  // 資産
+  { code: "100", name: "現金", type: "ASSET", category: "流動資産" },
+  { code: "101", name: "普通預金", type: "ASSET", category: "流動資産" },
+  { code: "102", name: "当座預金", type: "ASSET", category: "流動資産" },
+  { code: "110", name: "売掛金", type: "ASSET", category: "流動資産" },
+  { code: "120", name: "商品", type: "ASSET", category: "流動資産" },
+  { code: "130", name: "前払費用", type: "ASSET", category: "流動資産" },
+  { code: "200", name: "建物", type: "ASSET", category: "固定資産" },
+  { code: "210", name: "車両運搬具", type: "ASSET", category: "固定資産" },
+  { code: "220", name: "備品", type: "ASSET", category: "固定資産" },
+  { code: "230", name: "土地", type: "ASSET", category: "固定資産" },
+
+  // 負債
+  { code: "300", name: "買掛金", type: "LIABILITY", category: "流動負債" },
+  { code: "310", name: "未払金", type: "LIABILITY", category: "流動負債" },
+  { code: "320", name: "短期借入金", type: "LIABILITY", category: "流動負債" },
+  { code: "330", name: "預り金", type: "LIABILITY", category: "流動負債" },
+  { code: "350", name: "長期借入金", type: "LIABILITY", category: "固定負債" },
+
+  // 純資産
+  { code: "400", name: "資本金", type: "EQUITY", category: "資本金" },
+  { code: "410", name: "繰越利益剰余金", type: "EQUITY", category: "利益剰余金" },
+
+  // 収益
+  { code: "500", name: "売上高", type: "REVENUE", category: "売上高" },
+  { code: "510", name: "受取利息", type: "REVENUE", category: "営業外収益" },
+  { code: "520", name: "雑収入", type: "REVENUE", category: "営業外収益" },
+
+  // 費用
+  { code: "600", name: "仕入高", type: "EXPENSE", category: "売上原価" },
+  { code: "700", name: "給料手当", type: "EXPENSE", category: "販売費及び一般管理費" },
+  { code: "710", name: "法定福利費", type: "EXPENSE", category: "販売費及び一般管理費" },
+  { code: "720", name: "旅費交通費", type: "EXPENSE", category: "販売費及び一般管理費" },
+  { code: "730", name: "通信費", type: "EXPENSE", category: "販売費及び一般管理費" },
+  { code: "740", name: "消耗品費", type: "EXPENSE", category: "販売費及び一般管理費" },
+  { code: "750", name: "水道光熱費", type: "EXPENSE", category: "販売費及び一般管理費" },
+  { code: "760", name: "地代家賃", type: "EXPENSE", category: "販売費及び一般管理費" },
+  { code: "770", name: "減価償却費", type: "EXPENSE", category: "販売費及び一般管理費" },
+  { code: "780", name: "支払手数料", type: "EXPENSE", category: "販売費及び一般管理費" },
+  { code: "790", name: "広告宣伝費", type: "EXPENSE", category: "販売費及び一般管理費" },
+  { code: "800", name: "支払利息", type: "EXPENSE", category: "営業外費用" },
 ];
 
-const PRODUCTS = [
-  "Webサイト制作",
-  "コンサルティング",
-  "システム保守",
-  "デザイン制作",
-  "マーケティング支援",
-  "アプリ開発",
-];
+// サンプル仕訳生成関数
+function generateSampleJournals(
+  userId: string,
+  accountMap: Map<string, string>
+): {
+  date: Date;
+  debitAccountId: string;
+  creditAccountId: string;
+  amount: number;
+  description: string;
+  userId: string;
+}[] {
+  const journals: {
+    date: Date;
+    debitAccountId: string;
+    creditAccountId: string;
+    amount: number;
+    description: string;
+    userId: string;
+  }[] = [];
 
-function generateSalesData(customerId: string, userId: string): { productName: string; amount: number; saleDate: Date; customerId: string; userId: string }[] {
-  const sales: { productName: string; amount: number; saleDate: Date; customerId: string; userId: string }[] = [];
   const now = new Date();
+  const year = now.getFullYear();
 
-  // 過去3ヶ月に分散して売上を生成
-  for (let monthOffset = 0; monthOffset < 3; monthOffset++) {
-    const numSales = Math.floor(Math.random() * 2) + 1; // 1-2件/顧客/月
+  // 期首: 資本金 3,000,000円
+  journals.push({
+    date: new Date(year, 0, 1),
+    debitAccountId: accountMap.get("101")!, // 普通預金
+    creditAccountId: accountMap.get("400")!, // 資本金
+    amount: 3000000,
+    description: "設立時出資",
+    userId,
+  });
 
-    for (let i = 0; i < numSales; i++) {
-      const product = PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)];
-      // 30,000円〜300,000円
-      const amount = Math.floor(Math.random() * 28 + 3) * 10000;
-      const day = Math.floor(Math.random() * 28) + 1;
-      const saleDate = new Date(now.getFullYear(), now.getMonth() - monthOffset, day);
-
-      sales.push({
-        productName: product,
+  // 1月〜現在月までのサンプル仕訳
+  for (let month = 0; month <= now.getMonth(); month++) {
+    // 売上 (3-5件/月)
+    const salesCount = Math.floor(Math.random() * 3) + 3;
+    for (let i = 0; i < salesCount; i++) {
+      const day = Math.floor(Math.random() * 25) + 1;
+      const amount = (Math.floor(Math.random() * 20) + 5) * 10000; // 50,000〜250,000
+      journals.push({
+        date: new Date(year, month, day),
+        debitAccountId: accountMap.get("100")!, // 現金
+        creditAccountId: accountMap.get("500")!, // 売上高
         amount,
-        saleDate,
-        customerId,
+        description: `売上 ${month + 1}月-${i + 1}`,
         userId,
       });
     }
+
+    // 仕入 (1-2件/月)
+    const purchaseCount = Math.floor(Math.random() * 2) + 1;
+    for (let i = 0; i < purchaseCount; i++) {
+      const day = Math.floor(Math.random() * 25) + 1;
+      const amount = (Math.floor(Math.random() * 10) + 3) * 10000; // 30,000〜130,000
+      journals.push({
+        date: new Date(year, month, day),
+        debitAccountId: accountMap.get("600")!, // 仕入高
+        creditAccountId: accountMap.get("100")!, // 現金
+        amount,
+        description: `商品仕入 ${month + 1}月-${i + 1}`,
+        userId,
+      });
+    }
+
+    // 給料 (月末)
+    journals.push({
+      date: new Date(year, month, 25),
+      debitAccountId: accountMap.get("700")!, // 給料手当
+      creditAccountId: accountMap.get("101")!, // 普通預金
+      amount: 300000,
+      description: `${month + 1}月分給与`,
+      userId,
+    });
+
+    // 家賃 (月末)
+    journals.push({
+      date: new Date(year, month, 27),
+      debitAccountId: accountMap.get("760")!, // 地代家賃
+      creditAccountId: accountMap.get("101")!, // 普通預金
+      amount: 100000,
+      description: `${month + 1}月分家賃`,
+      userId,
+    });
+
+    // 水道光熱費
+    journals.push({
+      date: new Date(year, month, 20),
+      debitAccountId: accountMap.get("750")!, // 水道光熱費
+      creditAccountId: accountMap.get("101")!, // 普通預金
+      amount: 15000 + Math.floor(Math.random() * 5000),
+      description: `${month + 1}月分光熱費`,
+      userId,
+    });
+
+    // 通信費
+    journals.push({
+      date: new Date(year, month, 15),
+      debitAccountId: accountMap.get("730")!, // 通信費
+      creditAccountId: accountMap.get("101")!, // 普通預金
+      amount: 8000 + Math.floor(Math.random() * 2000),
+      description: `${month + 1}月分通信費`,
+      userId,
+    });
+
+    // 現金を預金に入金 (月1回)
+    journals.push({
+      date: new Date(year, month, 28),
+      debitAccountId: accountMap.get("101")!, // 普通預金
+      creditAccountId: accountMap.get("100")!, // 現金
+      amount: 500000,
+      description: "現金預入",
+      userId,
+    });
   }
 
-  return sales;
+  return journals;
 }
 
 export async function POST() {
@@ -64,30 +189,33 @@ export async function POST() {
       },
     });
 
-    // 顧客データ作成
-    const createdCustomers = await Promise.all(
-      GUEST_CUSTOMERS.map((customer) =>
-        prisma.customer.create({
+    // 勘定科目マスタ作成
+    const createdAccounts = await Promise.all(
+      STANDARD_ACCOUNTS.map((account) =>
+        prisma.chartOfAccount.create({
           data: {
-            ...customer,
+            ...account,
             userId: guestUser.id,
+            isSystem: true,
           },
         })
       )
     );
 
-    // 売上データ作成（各顧客に対して）
-    const allSalesData: { productName: string; amount: number; saleDate: Date; customerId: string; userId: string }[] = [];
-    for (const customer of createdCustomers) {
-      const customerSales = generateSalesData(customer.id, guestUser.id);
-      allSalesData.push(...customerSales);
+    // コード -> ID のマップ作成
+    const accountMap = new Map<string, string>();
+    for (const account of createdAccounts) {
+      accountMap.set(account.code, account.id);
     }
 
-    await prisma.sale.createMany({
-      data: allSalesData,
+    // サンプル仕訳データ作成
+    const sampleJournals = generateSampleJournals(guestUser.id, accountMap);
+
+    await prisma.journal.createMany({
+      data: sampleJournals,
     });
 
-    // ゲストユーザー情報を返す（クライアント側でCredentialsログインに使用）
+    // ゲストユーザー情報を返す
     return NextResponse.json({
       success: true,
       guestId: guestUser.id,

@@ -42,7 +42,7 @@ function LoginForm() {
       if (result?.error) {
         setError("メールアドレスまたはパスワードが正しくありません");
       } else {
-        router.push("/customers");
+        router.push("/dashboard");
         router.refresh();
       }
     } catch {
@@ -55,7 +55,7 @@ function LoginForm() {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      await signIn("google", { callbackUrl: "/customers" });
+      await signIn("google", { callbackUrl: "/dashboard" });
     } catch {
       setError("Googleログインに失敗しました");
       setIsGoogleLoading(false);
@@ -238,7 +238,7 @@ function LoginForm() {
           アカウントをお持ちでない方は{" "}
           <Link
             href="/register"
-            className="text-blue-600 hover:text-blue-800 font-medium hover:underline"
+            className="text-red-600 hover:text-red-800 font-medium hover:underline"
           >
             新規登録
           </Link>
@@ -259,7 +259,7 @@ export default function LoginPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex justify-center py-8">
-            <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+            <div className="animate-spin h-8 w-8 border-4 border-red-600 border-t-transparent rounded-full" />
           </CardContent>
         </Card>
       }>

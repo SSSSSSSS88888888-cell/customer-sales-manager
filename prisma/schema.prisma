@@ -27,8 +27,8 @@ model User {
   sessions  Session[]
 
   // ビジネスロジック用リレーション
-  customers Customer[]
-  sales     Sale[]
+  chartOfAccounts ChartOfAccount[]
+  journals        Journal[]
 }
 
 // ==========================================
@@ -70,42 +70,58 @@ model VerificationToken {
 }
 
 // ==========================================
-// Customer（顧客）
+// AccountType（勘定科目区分）
 // ==========================================
-model Customer {
-  id        String   @id @default(uuid())
+enum AccountType {
+  ASSET      // 資産
+  LIABILITY  // 負債
+  EQUITY     // 純資産
+  REVENUE    // 収益
+  EXPENSE    // 費用
+}
+
+// ==========================================
+// ChartOfAccount（勘定科目マスタ）
+// ==========================================
+model ChartOfAccount {
+  id        String      @id @default(uuid())
   userId    String
-  name      String   // 会社名/個人名
-  email     String?
-  phone     String?
-  address   String?
-  memo      String?  @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  code      String      // 勘定科目コード（101, 401など）
+  name      String      // 勘定科目名（現金、売上高など）
+  type      AccountType // 勘定科目区分
+  category  String      // カテゴリ（流動資産、固定資産、売上原価など）
+  isSystem  Boolean     @default(false) // システム標準科目フラグ
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
-  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sales Sale[]
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  debitJournals  Journal[] @relation("DebitAccount")
+  creditJournals Journal[] @relation("CreditAccount")
 
+  @@unique([userId, code])
   @@index([userId])
 }
 
 // ==========================================
-// Sale（売上）
+// Journal（仕訳）
 // ==========================================
-model Sale {
-  id          String    @id @default(uuid())
-  userId      String
-  customerId  String?   // nullable（顧客未登録の売上も可能）
-  productName String
-  amount      Int       // 円単位
-  saleDate    DateTime
-  memo        String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+model Journal {
+  id              String   @id @default(uuid())
+  userId          String
+  date            DateTime // 仕訳日付
+  debitAccountId  String   // 借方勘定科目ID
+  creditAccountId String   // 貸方勘定科目ID
+  amount          Int      // 金額（円単位）
+  description     String?  // 摘要
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  debitAccount  ChartOfAccount @relation("DebitAccount", fields: [debitAccountId], references: [id])
+  creditAccount ChartOfAccount @relation("CreditAccount", fields: [creditAccountId], references: [id])
 
   @@index([userId])
-  @@index([customerId])
+  @@index([date])
+  @@index([debitAccountId])
+  @@index([creditAccountId])
 }

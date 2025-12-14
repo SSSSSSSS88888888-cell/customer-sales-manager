@@ -3,14 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Users, DollarSign, BarChart3, LayoutDashboard, X } from "lucide-react";
+import {
+  LayoutDashboard,
+  BookOpen,
+  FileText,
+  Brain,
+  X,
+  Calculator,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navigation = [
   { name: "ダッシュボード", href: "/dashboard", icon: LayoutDashboard },
-  { name: "顧客管理", href: "/customers", icon: Users },
-  { name: "売上管理", href: "/sales", icon: DollarSign },
-  { name: "レポート", href: "/reports", icon: BarChart3 },
+  { name: "仕訳管理", href: "/journals", icon: BookOpen },
+  { name: "財務諸表", href: "/statements", icon: FileText },
+  { name: "AI分析", href: "/analysis", icon: Brain },
 ];
 
 interface SidebarProps {
@@ -24,7 +31,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const sidebarContent = (
     <>
       <div className="flex items-center justify-between h-16 px-6 border-b border-slate-700">
-        <h1 className="text-xl font-bold text-white">Sales Manager</h1>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-orange-600 rounded-lg flex items-center justify-center">
+            <Calculator className="h-5 w-5 text-white" />
+          </div>
+          <h1 className="text-xl font-bold text-white">ZaimuAI</h1>
+        </div>
         {onClose && (
           <Button
             variant="ghost"
@@ -38,7 +50,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       </div>
       <nav className="flex-1 px-4 py-6 space-y-2">
         {navigation.map((item) => {
-          const isActive = pathname === item.href ||
+          const isActive =
+            pathname === item.href ||
             (item.href !== "/dashboard" && pathname.startsWith(item.href));
           return (
             <Link
@@ -48,7 +61,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               className={cn(
                 "flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors",
                 isActive
-                  ? "bg-slate-800 text-white"
+                  ? "bg-red-600 text-white"
                   : "text-slate-400 hover:bg-slate-800 hover:text-white"
               )}
             >

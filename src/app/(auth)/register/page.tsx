@@ -68,7 +68,7 @@ export default function RegisterPage() {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      await signIn("google", { callbackUrl: "/customers" });
+      await signIn("google", { callbackUrl: "/dashboard" });
     } catch {
       setError("Googleログインに失敗しました");
       setIsGoogleLoading(false);
@@ -259,7 +259,7 @@ export default function RegisterPage() {
             既にアカウントをお持ちの方は{" "}
             <Link
               href="/login"
-              className="text-blue-600 hover:text-blue-800 font-medium hover:underline"
+              className="text-red-600 hover:text-red-800 font-medium hover:underline"
             >
               ログイン
             </Link>

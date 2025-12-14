@@ -16,12 +16,12 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: "Sales Manager - 顧客・売上管理システム",
-    template: "%s | Sales Manager",
+    default: "ZaimuAI - AI財務諸表メーカー",
+    template: "%s | ZaimuAI",
   },
-  description: "顧客情報と売上データを効率的に管理するWebアプリケーション",
-  keywords: ["顧客管理", "売上管理", "CRM", "ビジネス"],
-  authors: [{ name: "Sales Manager Team" }],
+  description: "仕訳入力だけで財務諸表（BS・PL・CF）を自動生成するAI財務諸表メーカー",
+  keywords: ["財務諸表", "貸借対照表", "損益計算書", "キャッシュフロー", "仕訳", "会計", "AI"],
+  authors: [{ name: "ZaimuAI Team" }],
   icons: {
     icon: "/favicon.ico",
   },
