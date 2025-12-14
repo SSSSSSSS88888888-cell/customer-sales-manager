@@ -1,115 +1,283 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, Sparkles, TrendingUp, AlertCircle, Lightbulb } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Shield,
+  TrendingUp,
+  Zap,
+  ArrowUpRight,
+  ArrowDownRight,
+  Minus,
+  Calculator,
+} from "lucide-react";
+
+interface FinancialRatio {
+  name: string;
+  value: number | null;
+  unit: string;
+  benchmark: number;
+  benchmarkLabel: string;
+  isHigherBetter: boolean;
+  category: string;
+}
+
+interface AnalysisData {
+  period: {
+    startDate: string;
+    endDate: string;
+  };
+  summary: {
+    totalAssets: number;
+    totalLiabilities: number;
+    equity: number;
+    sales: number;
+    grossProfit: number;
+    operatingIncome: number;
+    netIncome: number;
+  };
+  ratios: FinancialRatio[];
+}
 
 export default function AnalysisPage() {
+  const [data, setData] = useState<AnalysisData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAnalysis();
+  }, []);
+
+  const fetchAnalysis = async () => {
+    try {
+      const res = await fetch("/api/analysis");
+      const result = await res.json();
+      if (res.ok) {
+        setData(result);
+      }
+    } catch (error) {
+      console.error("分析データ取得エラー:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("ja-JP", {
+      style: "currency",
+      currency: "JPY",
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const formatValue = (value: number | null, unit: string) => {
+    if (value === null) return "-";
+    if (unit === "回") {
+      return value.toFixed(2);
+    }
+    return value.toFixed(1);
+  };
+
+  const getStatusColor = (ratio: FinancialRatio) => {
+    if (ratio.value === null) return "bg-slate-100 text-slate-600";
+    const meetsBenchmark = ratio.isHigherBetter
+      ? ratio.value >= ratio.benchmark
+      : ratio.value <= ratio.benchmark;
+    return meetsBenchmark
+      ? "bg-green-100 text-green-700"
+      : "bg-red-100 text-red-700";
+  };
+
+  const getStatusIcon = (ratio: FinancialRatio) => {
+    if (ratio.value === null) return <Minus className="h-4 w-4" />;
+    const meetsBenchmark = ratio.isHigherBetter
+      ? ratio.value >= ratio.benchmark
+      : ratio.value <= ratio.benchmark;
+    return meetsBenchmark ? (
+      <ArrowUpRight className="h-4 w-4" />
+    ) : (
+      <ArrowDownRight className="h-4 w-4" />
+    );
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case "安全性":
+        return <Shield className="h-5 w-5" />;
+      case "収益性":
+        return <TrendingUp className="h-5 w-5" />;
+      case "効率性":
+        return <Zap className="h-5 w-5" />;
+      default:
+        return <Calculator className="h-5 w-5" />;
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case "安全性":
+        return "bg-blue-100 text-blue-600";
+      case "収益性":
+        return "bg-green-100 text-green-600";
+      case "効率性":
+        return "bg-purple-100 text-purple-600";
+      default:
+        return "bg-slate-100 text-slate-600";
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin h-8 w-8 border-4 border-red-600 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  const groupedRatios = data?.ratios.reduce((acc, ratio) => {
+    if (!acc[ratio.category]) {
+      acc[ratio.category] = [];
+    }
+    acc[ratio.category].push(ratio);
+    return acc;
+  }, {} as Record<string, FinancialRatio[]>) || {};
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-          <Brain className="h-5 w-5 text-purple-600" />
+        <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+          <Calculator className="h-5 w-5 text-red-600" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">AI財務分析</h1>
-          <p className="text-sm text-slate-500">AIによる財務データの自動分析</p>
+          <h1 className="text-2xl font-bold text-slate-900">財務分析</h1>
+          <p className="text-sm text-slate-500">
+            {data?.period.startDate} 〜 {data?.period.endDate} の財務指標
+          </p>
         </div>
       </div>
 
-      {/* Coming Soon メッセージ */}
-      <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
-        <CardContent className="py-12">
-          <div className="text-center">
-            <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Sparkles className="h-10 w-10 text-purple-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-purple-900 mb-2">
-              Coming Soon
-            </h2>
-            <p className="text-purple-700 max-w-md mx-auto">
-              AI財務分析機能は現在開発中です。
-              将来的には以下の機能が利用可能になる予定です。
+      {/* サマリー */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-slate-500">総資産</p>
+            <p className="text-2xl font-bold text-slate-900">
+              {formatCurrency(data?.summary.totalAssets || 0)}
             </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 予定機能の説明 */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
-              <TrendingUp className="h-6 w-6 text-blue-600" />
-            </div>
-            <CardTitle className="text-lg">トレンド分析</CardTitle>
-            <CardDescription>
-              売上・利益のトレンドを自動分析し、成長パターンを可視化します。
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="text-sm text-slate-600 space-y-2">
-              <li>・月次推移グラフ</li>
-              <li>・前年同期比較</li>
-              <li>・季節変動の検出</li>
-            </ul>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader>
-            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
-              <AlertCircle className="h-6 w-6 text-orange-600" />
-            </div>
-            <CardTitle className="text-lg">異常検知</CardTitle>
-            <CardDescription>
-              通常と異なるパターンを検出し、早期に警告します。
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="text-sm text-slate-600 space-y-2">
-              <li>・急激な増減の検出</li>
-              <li>・キャッシュフロー警告</li>
-              <li>・コスト異常の発見</li>
-            </ul>
+          <CardContent className="pt-6">
+            <p className="text-sm text-slate-500">売上高</p>
+            <p className="text-2xl font-bold text-slate-900">
+              {formatCurrency(data?.summary.sales || 0)}
+            </p>
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader>
-            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
-              <Lightbulb className="h-6 w-6 text-green-600" />
-            </div>
-            <CardTitle className="text-lg">改善提案</CardTitle>
-            <CardDescription>
-              財務データに基づいた経営改善のヒントを提案します。
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="text-sm text-slate-600 space-y-2">
-              <li>・コスト削減ポイント</li>
-              <li>・収益性向上の提案</li>
-              <li>・資金繰り改善案</li>
-            </ul>
+          <CardContent className="pt-6">
+            <p className="text-sm text-slate-500">営業利益</p>
+            <p className="text-2xl font-bold text-slate-900">
+              {formatCurrency(data?.summary.operatingIncome || 0)}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-slate-500">自己資本</p>
+            <p className="text-2xl font-bold text-slate-900">
+              {formatCurrency(data?.summary.equity || 0)}
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* 補足情報 */}
-      <Card className="bg-slate-50">
-        <CardContent className="py-6">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 bg-slate-200 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Brain className="h-5 w-5 text-slate-600" />
+      {/* 財務指標 */}
+      {Object.entries(groupedRatios).map(([category, ratios]) => (
+        <Card key={category}>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-10 h-10 rounded-lg flex items-center justify-center ${getCategoryColor(
+                  category
+                )}`}
+              >
+                {getCategoryIcon(category)}
+              </div>
+              <CardTitle className="text-lg">{category}指標</CardTitle>
             </div>
-            <div>
-              <h3 className="font-medium text-slate-900 mb-1">
-                AI分析機能について
-              </h3>
-              <p className="text-sm text-slate-600">
-                この機能はAnthropicのClaude APIを活用して、財務データの自動分析と
-                インサイト抽出を行う予定です。仕訳データが十分に蓄積された後、
-                より精度の高い分析が可能になります。
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              {ratios.map((ratio) => (
+                <div
+                  key={ratio.name}
+                  className="p-4 bg-slate-50 rounded-lg border border-slate-100"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <p className="text-sm font-medium text-slate-700">
+                      {ratio.name}
+                    </p>
+                    <div
+                      className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                        ratio
+                      )}`}
+                    >
+                      {getStatusIcon(ratio)}
+                      {ratio.value !== null &&
+                        (ratio.isHigherBetter
+                          ? ratio.value >= ratio.benchmark
+                            ? "良好"
+                            : "要改善"
+                          : ratio.value <= ratio.benchmark
+                          ? "良好"
+                          : "要改善")}
+                      {ratio.value === null && "データ不足"}
+                    </div>
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900 mb-1">
+                    {formatValue(ratio.value, ratio.unit)}
+                    <span className="text-lg font-normal text-slate-500 ml-1">
+                      {ratio.unit}
+                    </span>
+                  </p>
+                  <p className="text-xs text-slate-500">{ratio.benchmarkLabel}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+
+      {/* データがない場合 */}
+      {(!data?.ratios || data.ratios.length === 0) && (
+        <Card className="border-slate-200">
+          <CardContent className="py-12">
+            <div className="text-center">
+              <Calculator className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+              <p className="text-slate-600 mb-2">財務データがありません</p>
+              <p className="text-sm text-slate-500">
+                仕訳を登録すると、財務指標が自動計算されます
               </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 凡例 */}
+      <Card className="bg-slate-50">
+        <CardContent className="py-4">
+          <div className="flex flex-wrap items-center gap-6 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full" />
+              <span className="text-slate-600">基準値を満たしている</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-red-500 rounded-full" />
+              <span className="text-slate-600">基準値を下回っている</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-slate-400 rounded-full" />
+              <span className="text-slate-600">データ不足</span>
             </div>
           </div>
         </CardContent>
