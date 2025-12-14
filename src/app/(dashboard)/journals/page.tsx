@@ -102,10 +102,37 @@ export default function JournalsPage() {
       const res = await fetch("/api/chart-of-accounts");
       const data = await res.json();
       if (res.ok) {
+        // 勘定科目がない場合は初期化
+        if (data.accounts.length === 0) {
+          await initializeAccounts();
+          return;
+        }
         setAccounts(data.accounts);
       }
     } catch (error) {
       console.error("勘定科目取得エラー:", error);
+    }
+  };
+
+  const initializeAccounts = async () => {
+    try {
+      const res = await fetch("/api/chart-of-accounts/init", {
+        method: "POST",
+      });
+      if (res.ok) {
+        // 初期化後に再取得
+        const accountsRes = await fetch("/api/chart-of-accounts");
+        const data = await accountsRes.json();
+        if (accountsRes.ok) {
+          setAccounts(data.accounts);
+          toast({
+            title: "標準勘定科目を初期化しました",
+            description: "30種類以上の勘定科目が作成されました",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("勘定科目初期化エラー:", error);
     }
   };
 
