@@ -10,14 +10,16 @@ import {
   Brain,
   X,
   Calculator,
+  BookMarked,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navigation = [
   { name: "ダッシュボード", href: "/dashboard", icon: LayoutDashboard },
   { name: "仕訳管理", href: "/journals", icon: BookOpen },
+  { name: "勘定科目", href: "/accounts", icon: BookMarked },
   { name: "財務諸表", href: "/statements", icon: FileText },
-  { name: "AI分析", href: "/analysis", icon: Brain },
+  { name: "財務分析", href: "/analysis", icon: Brain },
 ];
 
 interface SidebarProps {
