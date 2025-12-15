@@ -26,7 +26,6 @@ import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
-  Loader2,
   Shield,
 } from "lucide-react";
 
