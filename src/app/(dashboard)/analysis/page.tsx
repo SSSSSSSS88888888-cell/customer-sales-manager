@@ -38,8 +38,6 @@ import {
   Radar,
   LineChart,
   Line,
-  Area,
-  AreaChart,
 } from "recharts";
 
 interface FinancialRatio {
