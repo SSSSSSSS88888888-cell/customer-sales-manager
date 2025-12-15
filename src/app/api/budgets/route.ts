@@ -4,6 +4,14 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+interface Budget {
+  id: string;
+  year: number;
+  month: number;
+  category: string;
+  amount: number;
+}
+
 // GET: 予算一覧取得
 export async function GET(request: NextRequest) {
   try {
@@ -59,8 +67,8 @@ export async function GET(request: NextRequest) {
     // 予算と実績をマージ
     const monthlyData = [];
     for (let m = 1; m <= 12; m++) {
-      const salesBudget = budgets.find(b => b.month === m && b.category === "sales");
-      const expensesBudget = budgets.find(b => b.month === m && b.category === "expenses");
+      const salesBudget = budgets.find((b: Budget) => b.month === m && b.category === "sales");
+      const expensesBudget = budgets.find((b: Budget) => b.month === m && b.category === "expenses");
 
       monthlyData.push({
         month: m,

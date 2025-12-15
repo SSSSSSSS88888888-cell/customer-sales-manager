@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+interface GuestUser {
+  id: string;
+}
+
 // Vercel Cron認証用（環境変数で設定）
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -37,7 +41,7 @@ export async function GET(request: Request) {
       });
     }
 
-    const guestIds = expiredGuests.map((g) => g.id);
+    const guestIds = expiredGuests.map((g: GuestUser) => g.id);
 
     // 関連データを削除
     await prisma.journal.deleteMany({

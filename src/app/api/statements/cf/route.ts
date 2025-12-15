@@ -7,6 +7,10 @@ interface CashFlowItem {
   amount: number;
 }
 
+interface CashAccount {
+  id: string;
+}
+
 // GET: キャッシュフロー計算書データを取得
 export async function GET(request: NextRequest) {
   try {
@@ -39,7 +43,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const cashAccountIds = new Set(cashAccounts.map((a) => a.id));
+    const cashAccountIds = new Set<string>(cashAccounts.map((a: CashAccount) => a.id));
 
     // 期間内の仕訳を取得
     const journals = await prisma.journal.findMany({

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Frequency } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
+
+// Frequency を文字列リテラルとして定義
+type Frequency = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
 
 // POST: 定期仕訳から仕訳を生成
 export async function POST() {

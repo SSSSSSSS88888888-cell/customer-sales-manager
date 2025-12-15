@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { InvoiceStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
+
+// InvoiceStatus を文字列リテラルとして定義
+type InvoiceStatus = "DRAFT" | "SENT" | "PAID" | "OVERDUE" | "CANCELLED";
 
 interface InvoiceItemInput {
   description: string;

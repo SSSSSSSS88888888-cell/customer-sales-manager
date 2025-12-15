@@ -33,6 +33,10 @@ model User {
   recurringJournals  RecurringJournal[]
   tradingPartners    TradingPartner[]
   invoices           Invoice[]
+
+  // チーム関連
+  ownedTeams         Team[]       @relation("TeamOwner")
+  teamMemberships    TeamMember[]
 }
 
 // ==========================================
@@ -283,4 +287,51 @@ model InvoiceItem {
   invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@index([invoiceId])
+}
+
+// ==========================================
+// TeamRole（チームメンバー権限）
+// ==========================================
+enum TeamRole {
+  OWNER   // オーナー（全権限）
+  ADMIN   // 管理者（メンバー管理可）
+  MEMBER  // メンバー（編集可）
+  VIEWER  // 閲覧者（閲覧のみ）
+}
+
+// ==========================================
+// Team（チーム）
+// ==========================================
+model Team {
+  id          String   @id @default(uuid())
+  name        String   // チーム名
+  description String?  // チーム説明
+  ownerId     String   // オーナーユーザーID
+  inviteCode  String   @unique @default(uuid()) // 招待コード
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner   User         @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members TeamMember[]
+
+  @@index([ownerId])
+}
+
+// ==========================================
+// TeamMember（チームメンバー）
+// ==========================================
+model TeamMember {
+  id        String   @id @default(uuid())
+  teamId    String
+  userId    String
+  role      TeamRole @default(MEMBER)
+  joinedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
 }

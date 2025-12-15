@@ -13,6 +13,21 @@ interface TaxSummary {
   taxPayable: number;
 }
 
+interface AccountWithType {
+  id: string;
+  code: string;
+  name: string;
+  type: string;
+}
+
+interface JournalWithAccounts {
+  id: string;
+  date: Date;
+  amount: number;
+  debitAccount: AccountWithType;
+  creditAccount: AccountWithType;
+}
+
 // GET: 消費税計算・税務データ取得
 export async function GET(request: Request) {
   try {
@@ -47,14 +62,14 @@ export async function GET(request: Request) {
       const monthStart = new Date(year, month, 1);
       const monthEnd = new Date(year, month + 1, 0, 23, 59, 59);
 
-      const monthJournals = journals.filter(j => {
+      const monthJournals = journals.filter((j: JournalWithAccounts) => {
         const d = new Date(j.date);
         return d >= monthStart && d <= monthEnd;
       });
 
       // 売上（REVENUE）の計算
       let salesTotal = 0;
-      monthJournals.forEach(j => {
+      monthJournals.forEach((j: JournalWithAccounts) => {
         if (j.creditAccount.type === "REVENUE") {
           salesTotal += j.amount;
         }
@@ -62,7 +77,7 @@ export async function GET(request: Request) {
 
       // 仕入・費用（EXPENSE）の計算
       let purchasesTotal = 0;
-      monthJournals.forEach(j => {
+      monthJournals.forEach((j: JournalWithAccounts) => {
         if (j.debitAccount.type === "EXPENSE") {
           purchasesTotal += j.amount;
         }
@@ -98,7 +113,7 @@ export async function GET(request: Request) {
     // 確定申告用データ（勘定科目別集計）
     const accountSummary: Record<string, { name: string; type: string; debit: number; credit: number }> = {};
 
-    journals.forEach(j => {
+    journals.forEach((j: JournalWithAccounts) => {
       // 借方
       if (!accountSummary[j.debitAccount.code]) {
         accountSummary[j.debitAccount.code] = {

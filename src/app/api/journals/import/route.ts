@@ -12,6 +12,11 @@ interface JournalRow {
   amount: number;
 }
 
+interface ChartAccount {
+  id: string;
+  code: string;
+}
+
 // POST: CSVインポート
 export async function POST(request: Request) {
   try {
@@ -31,7 +36,7 @@ export async function POST(request: Request) {
       where: { userId: session.user.id },
     });
 
-    const accountMap = new Map(accounts.map(a => [a.code, a.id]));
+    const accountMap = new Map(accounts.map((a: ChartAccount) => [a.code, a.id]));
 
     const results = {
       success: 0,

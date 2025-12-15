@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { nanoid } from "nanoid";
-import { AccountType } from "@prisma/client";
+
+// AccountType を文字列リテラルとして定義
+type AccountType = "ASSET" | "LIABILITY" | "EQUITY" | "REVENUE" | "EXPENSE";
 
 // 標準勘定科目マスタ
 const STANDARD_ACCOUNTS: {

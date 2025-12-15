@@ -18,6 +18,7 @@ import {
   Users,
   Receipt,
   BadgePercent,
+  UsersRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -34,6 +35,7 @@ const navigation = [
   { name: "財務諸表", href: "/statements", icon: FileText },
   { name: "財務分析", href: "/analysis", icon: Brain },
   { name: "AIチャット", href: "/chat", icon: MessageCircle },
+  { name: "チーム管理", href: "/teams", icon: UsersRound },
 ];
 
 interface SidebarProps {

@@ -19,6 +19,12 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+interface GuestUser {
+  id: string;
+  email: string;
+  createdAt: Date;
+}
+
 async function cleanupGuests() {
   console.log("Starting guest cleanup...");
 
@@ -48,11 +54,11 @@ async function cleanupGuests() {
     }
 
     console.log(`Found ${expiredGuests.length} expired guests to delete:`);
-    expiredGuests.forEach((guest) => {
+    for (const guest of expiredGuests) {
       console.log(`  - ${guest.email} (created: ${guest.createdAt.toISOString()})`);
-    });
+    }
 
-    const guestIds = expiredGuests.map((g) => g.id);
+    const guestIds = expiredGuests.map((g: GuestUser) => g.id);
 
     // 関連データを削除（カスケード削除されるが明示的に実行）
     // 仕訳データを先に削除

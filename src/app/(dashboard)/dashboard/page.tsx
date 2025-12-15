@@ -13,6 +13,23 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+interface Account {
+  id: string;
+  code: string;
+  name: string;
+  type: string;
+  category: string;
+}
+
+interface JournalWithAccounts {
+  id: string;
+  date: Date;
+  amount: number;
+  description: string | null;
+  debitAccount: Account;
+  creditAccount: Account;
+}
+
 export const metadata: Metadata = {
   title: "ダッシュボード",
 };
@@ -178,7 +195,7 @@ export default async function DashboardPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {recentJournals.map((journal) => (
+                {recentJournals.map((journal: JournalWithAccounts) => (
                   <div
                     key={journal.id}
                     className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"

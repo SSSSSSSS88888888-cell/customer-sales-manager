@@ -1,7 +1,10 @@
-import { PrismaClient, AccountType } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
+
+// AccountType を文字列リテラルとして定義
+type AccountType = "ASSET" | "LIABILITY" | "EQUITY" | "REVENUE" | "EXPENSE";
 
 // 標準勘定科目マスタ
 const STANDARD_ACCOUNTS: {
