@@ -27,9 +27,10 @@ model User {
   sessions  Session[]
 
   // ビジネスロジック用リレーション
-  chartOfAccounts ChartOfAccount[]
-  journals        Journal[]
-  budgets         Budget[]
+  chartOfAccounts    ChartOfAccount[]
+  journals           Journal[]
+  budgets            Budget[]
+  recurringJournals  RecurringJournal[]
 }
 
 // ==========================================
@@ -96,8 +97,10 @@ model ChartOfAccount {
   updatedAt DateTime    @updatedAt
 
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  debitJournals  Journal[] @relation("DebitAccount")
-  creditJournals Journal[] @relation("CreditAccount")
+  debitJournals            Journal[]          @relation("DebitAccount")
+  creditJournals           Journal[]          @relation("CreditAccount")
+  debitRecurringJournals   RecurringJournal[] @relation("DebitRecurringAccount")
+  creditRecurringJournals  RecurringJournal[] @relation("CreditRecurringAccount")
 
   @@unique([userId, code])
   @@index([userId])
@@ -145,4 +148,43 @@ model Budget {
   @@unique([userId, year, month, category])
   @@index([userId])
   @@index([year, month])
+}
+
+// ==========================================
+// Frequency（定期仕訳の頻度）
+// ==========================================
+enum Frequency {
+  DAILY    // 毎日
+  WEEKLY   // 毎週
+  MONTHLY  // 毎月
+  YEARLY   // 毎年
+}
+
+// ==========================================
+// RecurringJournal（定期仕訳）
+// ==========================================
+model RecurringJournal {
+  id              String    @id @default(uuid())
+  userId          String
+  name            String    // 定期仕訳名（例：家賃支払い）
+  debitAccountId  String    // 借方勘定科目ID
+  creditAccountId String    // 貸方勘定科目ID
+  amount          Int       // 金額
+  description     String?   // 摘要
+  frequency       Frequency // 頻度
+  dayOfMonth      Int?      // 月次の場合の実行日（1-31）
+  dayOfWeek       Int?      // 週次の場合の曜日（0=日曜〜6=土曜）
+  startDate       DateTime  // 開始日
+  endDate         DateTime? // 終了日（null=無期限）
+  isActive        Boolean   @default(true) // 有効フラグ
+  lastGeneratedAt DateTime? // 最終生成日
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  debitAccount  ChartOfAccount @relation("DebitRecurringAccount", fields: [debitAccountId], references: [id])
+  creditAccount ChartOfAccount @relation("CreditRecurringAccount", fields: [creditAccountId], references: [id])
+
+  @@index([userId])
+  @@index([isActive])
 }

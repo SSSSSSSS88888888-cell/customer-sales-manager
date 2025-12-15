@@ -14,6 +14,7 @@ import {
   MessageCircle,
   Upload,
   Target,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -22,6 +23,7 @@ const navigation = [
   { name: "仕訳管理", href: "/journals", icon: BookOpen },
   { name: "勘定科目", href: "/accounts", icon: BookMarked },
   { name: "CSVインポート", href: "/import", icon: Upload },
+  { name: "定期仕訳", href: "/recurring", icon: RefreshCw },
   { name: "予算管理", href: "/budget", icon: Target },
   { name: "財務諸表", href: "/statements", icon: FileText },
   { name: "財務分析", href: "/analysis", icon: Brain },
