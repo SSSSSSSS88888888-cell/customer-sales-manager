@@ -5,10 +5,6 @@ import Anthropic from "@anthropic-ai/sdk";
 
 export const dynamic = "force-dynamic";
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
 // POST: AI財務診断
 export async function POST() {
   try {
@@ -24,6 +20,11 @@ export async function POST() {
         { status: 503 }
       );
     }
+
+    // クライアントを関数内で初期化
+    const anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
 
     // 今年度の期間を設定
     const startDate = new Date(new Date().getFullYear(), 0, 1);
