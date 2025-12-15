@@ -11,6 +11,7 @@ import {
   X,
   Calculator,
   BookMarked,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -20,6 +21,7 @@ const navigation = [
   { name: "勘定科目", href: "/accounts", icon: BookMarked },
   { name: "財務諸表", href: "/statements", icon: FileText },
   { name: "財務分析", href: "/analysis", icon: Brain },
+  { name: "AIチャット", href: "/chat", icon: MessageCircle },
 ];
 
 interface SidebarProps {
