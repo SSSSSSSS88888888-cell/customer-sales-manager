@@ -16,7 +16,27 @@ import {
   AlertTriangle,
   CheckCircle,
   Loader2,
+  BarChart3,
+  PieChart as PieChartIcon,
 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+} from "recharts";
 
 interface FinancialRatio {
   name: string;
@@ -65,6 +85,8 @@ interface AIDiagnosis {
   risks: string[];
 }
 
+const COLORS = ["#3b82f6", "#ef4444", "#22c55e", "#f59e0b", "#8b5cf6", "#06b6d4"];
+
 export default function AnalysisPage() {
   const [data, setData] = useState<AnalysisData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -112,15 +134,15 @@ export default function AnalysisPage() {
   const getGradeColor = (grade: string) => {
     switch (grade) {
       case "S":
-        return "bg-gradient-to-r from-yellow-400 to-amber-500 text-white";
+        return "bg-yellow-500 text-white";
       case "A":
-        return "bg-gradient-to-r from-green-400 to-emerald-500 text-white";
+        return "bg-green-500 text-white";
       case "B":
-        return "bg-gradient-to-r from-blue-400 to-cyan-500 text-white";
+        return "bg-blue-500 text-white";
       case "C":
-        return "bg-gradient-to-r from-orange-400 to-amber-500 text-white";
+        return "bg-orange-500 text-white";
       case "D":
-        return "bg-gradient-to-r from-red-400 to-rose-500 text-white";
+        return "bg-red-500 text-white";
       default:
         return "bg-slate-400 text-white";
     }
@@ -200,7 +222,7 @@ export default function AnalysisPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin h-8 w-8 border-4 border-red-600 border-t-transparent rounded-full" />
+        <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -213,12 +235,41 @@ export default function AnalysisPage() {
     return acc;
   }, {} as Record<string, FinancialRatio[]>) || {};
 
+  // チャート用データ
+  const profitData = data ? [
+    { name: "売上高", value: data.summary.sales },
+    { name: "売上総利益", value: data.summary.grossProfit },
+    { name: "営業利益", value: data.summary.operatingIncome },
+    { name: "純利益", value: data.summary.netIncome },
+  ] : [];
+
+  const bsData = data ? [
+    { name: "資産", value: data.summary.totalAssets },
+    { name: "負債", value: data.summary.totalLiabilities },
+    { name: "純資産", value: data.summary.equity },
+  ] : [];
+
+  const pieData = data ? [
+    { name: "負債", value: data.summary.totalLiabilities },
+    { name: "純資産", value: data.summary.equity },
+  ] : [];
+
+  // レーダーチャート用データ（財務指標）
+  const radarData = data?.ratios
+    .filter(r => r.value !== null)
+    .slice(0, 6)
+    .map(r => ({
+      subject: r.name.replace(/（.*）/, ""),
+      value: Math.min((r.value || 0) / r.benchmark * 100, 150),
+      fullMark: 150,
+    })) || [];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-            <Calculator className="h-5 w-5 text-red-600" />
+          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            <Calculator className="h-5 w-5 text-blue-600" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-900">財務分析</h1>
@@ -230,7 +281,7 @@ export default function AnalysisPage() {
         <Button
           onClick={runAIDiagnosis}
           disabled={isAILoading}
-          className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 gap-2"
+          className="bg-purple-600 hover:bg-purple-700 gap-2"
         >
           {isAILoading ? (
             <>
@@ -260,7 +311,7 @@ export default function AnalysisPage() {
 
       {aiDiagnosis && (
         <Card className="border-purple-200 overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+          <CardHeader className="bg-purple-600 text-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Sparkles className="h-6 w-6" />
@@ -269,7 +320,7 @@ export default function AnalysisPage() {
               <div className="flex items-center gap-4">
                 <div className="text-center">
                   <p className="text-xs text-purple-200">総合スコア</p>
-                  <p className={`text-3xl font-bold ${aiDiagnosis.overallScore >= 60 ? 'text-white' : 'text-yellow-300'}`}>
+                  <p className="text-3xl font-bold text-white">
                     {aiDiagnosis.overallScore}
                   </p>
                 </div>
@@ -364,7 +415,7 @@ export default function AnalysisPage() {
         </Card>
       )}
 
-      {/* サマリー */}
+      {/* サマリーカード */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="pt-6">
@@ -399,6 +450,137 @@ export default function AnalysisPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* グラフセクション */}
+      {data && (data.summary.sales > 0 || data.summary.totalAssets > 0) && (
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* 損益構造 */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="h-5 w-5 text-blue-600" />
+                </div>
+                <CardTitle className="text-lg">損益構造</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={profitData} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" tickFormatter={(v) => `¥${(v / 10000).toFixed(0)}万`} />
+                    <YAxis type="category" dataKey="name" width={80} />
+                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 資本構成 */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <PieChartIcon className="h-5 w-5 text-green-600" />
+                </div>
+                <CardTitle className="text-lg">資本構成</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 財務バランス */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="h-5 w-5 text-purple-600" />
+                </div>
+                <CardTitle className="text-lg">財務バランス</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={bsData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis tickFormatter={(v) => `¥${(v / 10000).toFixed(0)}万`} />
+                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                      {bsData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 財務指標レーダー */}
+          {radarData.length > 0 && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <CardTitle className="text-lg">財務指標バランス</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={radarData}>
+                      <PolarGrid />
+                      <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12 }} />
+                      <PolarRadiusAxis angle={30} domain={[0, 150]} tick={{ fontSize: 10 }} />
+                      <Radar
+                        name="達成率"
+                        dataKey="value"
+                        stroke="#3b82f6"
+                        fill="#3b82f6"
+                        fillOpacity={0.5}
+                      />
+                      <Tooltip formatter={(value: number) => `${value.toFixed(0)}%`} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+                <p className="text-xs text-slate-500 text-center mt-2">
+                  基準値に対する達成率（100% = 基準値達成）
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       {/* 財務指標 */}
       {Object.entries(groupedRatios).map(([category, ratios]) => (
