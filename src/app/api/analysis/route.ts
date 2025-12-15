@@ -248,6 +248,7 @@ export async function GET(request: NextRequest) {
         netIncome,
       },
       ratios,
+      monthlyTrends: calculateMonthlyTrends(journals),
     });
   } catch (error) {
     console.error("財務分析エラー:", error);
@@ -256,4 +257,60 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// 月次推移データを計算
+function calculateMonthlyTrends(journals: Array<{
+  date: Date;
+  amount: number;
+  debitAccount: { type: string; category: string };
+  creditAccount: { type: string; category: string };
+}>) {
+  const monthlyData = new Map<string, { sales: number; expenses: number; profit: number }>();
+
+  // 過去12ヶ月分の月を初期化
+  const now = new Date();
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    monthlyData.set(key, { sales: 0, expenses: 0, profit: 0 });
+  }
+
+  // 仕訳データを月ごとに集計
+  for (const journal of journals) {
+    const date = new Date(journal.date);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+    if (!monthlyData.has(key)) continue;
+
+    const current = monthlyData.get(key)!;
+
+    // 売上（貸方が売上高の場合）
+    if (journal.creditAccount.type === "REVENUE" && journal.creditAccount.category === "売上高") {
+      current.sales += journal.amount;
+    }
+
+    // 費用（借方が費用の場合）
+    if (journal.debitAccount.type === "EXPENSE") {
+      current.expenses += journal.amount;
+    }
+
+    monthlyData.set(key, current);
+  }
+
+  // 利益を計算してフォーマット
+  const result = Array.from(monthlyData.entries()).map(([month, data]) => ({
+    month,
+    monthLabel: formatMonthLabel(month),
+    sales: data.sales,
+    expenses: data.expenses,
+    profit: data.sales - data.expenses,
+  }));
+
+  return result;
+}
+
+function formatMonthLabel(monthKey: string): string {
+  const [year, month] = monthKey.split("-");
+  return `${year}/${month}`;
 }

@@ -36,6 +36,10 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis,
   Radar,
+  LineChart,
+  Line,
+  Area,
+  AreaChart,
 } from "recharts";
 
 interface FinancialRatio {
@@ -46,6 +50,14 @@ interface FinancialRatio {
   benchmarkLabel: string;
   isHigherBetter: boolean;
   category: string;
+}
+
+interface MonthlyTrend {
+  month: string;
+  monthLabel: string;
+  sales: number;
+  expenses: number;
+  profit: number;
 }
 
 interface AnalysisData {
@@ -63,6 +75,7 @@ interface AnalysisData {
     netIncome: number;
   };
   ratios: FinancialRatio[];
+  monthlyTrends: MonthlyTrend[];
 }
 
 interface AIDiagnosis {
@@ -450,6 +463,85 @@ export default function AnalysisPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* 月次推移グラフ */}
+      {data && data.monthlyTrends && data.monthlyTrends.some(t => t.sales > 0 || t.expenses > 0) && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-indigo-600" />
+              </div>
+              <CardTitle className="text-lg">月次推移（売上・費用・利益）</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data.monthlyTrends}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="monthLabel"
+                    tick={{ fontSize: 11 }}
+                    interval={0}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis tickFormatter={(v) => `¥${(v / 10000).toFixed(0)}万`} />
+                  <Tooltip
+                    formatter={(value: number, name: string) => [
+                      formatCurrency(value),
+                      name === "sales" ? "売上高" : name === "expenses" ? "費用" : "利益"
+                    ]}
+                    labelFormatter={(label) => `${label}`}
+                  />
+                  <Legend
+                    formatter={(value) =>
+                      value === "sales" ? "売上高" : value === "expenses" ? "費用" : "利益"
+                    }
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="sales"
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    dot={{ fill: "#3b82f6", strokeWidth: 2 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="expenses"
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    dot={{ fill: "#ef4444", strokeWidth: 2 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="profit"
+                    stroke="#22c55e"
+                    strokeWidth={2}
+                    dot={{ fill: "#22c55e", strokeWidth: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex justify-center gap-6 mt-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full" />
+                <span className="text-slate-600">売上高</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-red-500 rounded-full" />
+                <span className="text-slate-600">費用</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full" />
+                <span className="text-slate-600">利益</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* グラフセクション */}
       {data && (data.summary.sales > 0 || data.summary.totalAssets > 0) && (
