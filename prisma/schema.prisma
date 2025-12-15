@@ -31,6 +31,8 @@ model User {
   journals           Journal[]
   budgets            Budget[]
   recurringJournals  RecurringJournal[]
+  tradingPartners    TradingPartner[]
+  invoices           Invoice[]
 }
 
 // ==========================================
@@ -187,4 +189,98 @@ model RecurringJournal {
 
   @@index([userId])
   @@index([isActive])
+}
+
+// ==========================================
+// PartnerType（取引先区分）
+// ==========================================
+enum PartnerType {
+  CUSTOMER  // 顧客（売上先）
+  VENDOR    // 仕入先
+  BOTH      // 両方
+}
+
+// ==========================================
+// TradingPartner（取引先）
+// ==========================================
+model TradingPartner {
+  id            String      @id @default(uuid())
+  userId        String
+  code          String      // 取引先コード
+  name          String      // 取引先名
+  type          PartnerType // 取引先区分
+  contactPerson String?     // 担当者名
+  email         String?     // メールアドレス
+  phone         String?     // 電話番号
+  postalCode    String?     // 郵便番号
+  address       String?     // 住所
+  notes         String?     // 備考
+  isActive      Boolean     @default(true) // 有効フラグ
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
+
+  @@unique([userId, code])
+  @@index([userId])
+  @@index([type])
+}
+
+// ==========================================
+// InvoiceStatus（請求書ステータス）
+// ==========================================
+enum InvoiceStatus {
+  DRAFT     // 下書き
+  SENT      // 送付済み
+  PAID      // 入金済み
+  OVERDUE   // 期限超過
+  CANCELLED // キャンセル
+}
+
+// ==========================================
+// Invoice（請求書）
+// ==========================================
+model Invoice {
+  id              String        @id @default(uuid())
+  userId          String
+  invoiceNumber   String        // 請求書番号
+  partnerId       String        // 取引先ID
+  issueDate       DateTime      // 発行日
+  dueDate         DateTime      // 支払期限
+  status          InvoiceStatus @default(DRAFT)
+  subtotal        Int           // 小計
+  taxRate         Int           @default(10) // 税率（%）
+  taxAmount       Int           // 税額
+  totalAmount     Int           // 合計金額
+  notes           String?       // 備考
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  partner TradingPartner @relation(fields: [partnerId], references: [id])
+  items   InvoiceItem[]
+
+  @@unique([userId, invoiceNumber])
+  @@index([userId])
+  @@index([partnerId])
+  @@index([status])
+}
+
+// ==========================================
+// InvoiceItem（請求書明細）
+// ==========================================
+model InvoiceItem {
+  id          String   @id @default(uuid())
+  invoiceId   String
+  description String   // 品目・説明
+  quantity    Int      // 数量
+  unitPrice   Int      // 単価
+  amount      Int      // 金額
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
 }

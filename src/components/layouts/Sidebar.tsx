@@ -15,6 +15,8 @@ import {
   Upload,
   Target,
   RefreshCw,
+  Users,
+  Receipt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -24,6 +26,8 @@ const navigation = [
   { name: "勘定科目", href: "/accounts", icon: BookMarked },
   { name: "CSVインポート", href: "/import", icon: Upload },
   { name: "定期仕訳", href: "/recurring", icon: RefreshCw },
+  { name: "取引先管理", href: "/partners", icon: Users },
+  { name: "請求書", href: "/invoices", icon: Receipt },
   { name: "予算管理", href: "/budget", icon: Target },
   { name: "財務諸表", href: "/statements", icon: FileText },
   { name: "財務分析", href: "/analysis", icon: Brain },
