@@ -258,8 +258,9 @@ JSONのみを出力し、他の説明は含めないでください。`;
     });
   } catch (error) {
     console.error("AI診断エラー:", error);
+    const errorMessage = error instanceof Error ? error.message : "不明なエラー";
     return NextResponse.json(
-      { error: "AI診断の実行に失敗しました" },
+      { error: `AI診断エラー: ${errorMessage}` },
       { status: 500 }
     );
   }
