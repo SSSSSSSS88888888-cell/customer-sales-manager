@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 
 export const dynamic = "force-dynamic";
 
@@ -14,16 +14,16 @@ export async function POST() {
     }
 
     // API キーの確認
-    if (!process.env.ANTHROPIC_API_KEY) {
+    if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
-        { error: "AI機能が設定されていません。ANTHROPIC_API_KEYを設定してください。" },
+        { error: "AI機能が設定されていません。OPENAI_API_KEYを設定してください。" },
         { status: 503 }
       );
     }
 
     // クライアントを関数内で初期化
-    const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
     });
 
     // 今年度の期間を設定
@@ -47,9 +47,13 @@ export async function POST() {
 
     if (journals.length === 0) {
       return NextResponse.json({
-        diagnosis: "仕訳データがありません。仕訳を登録してから財務診断を実行してください。",
-        recommendations: [],
-        score: null,
+        diagnosis: {
+          overallScore: 0,
+          grade: "-",
+          summary: "仕訳データがありません。仕訳を登録してから財務診断を実行してください。",
+          recommendations: [],
+          risks: [],
+        },
       });
     }
 
@@ -139,7 +143,7 @@ export async function POST() {
     const roa = totalAssets > 0 ? (netIncome / totalAssets) * 100 : null;
     const roe = equity > 0 ? (netIncome / equity) * 100 : null;
 
-    // Claude API で分析
+    // OpenAI API で分析
     const prompt = `あなたは経験豊富な財務アナリストです。以下の財務データを分析し、日本語で診断結果を提供してください。
 
 ## 財務データ（単位：円）
@@ -205,19 +209,19 @@ export async function POST() {
 
 JSONのみを出力し、他の説明は含めないでください。`;
 
-    const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 2048,
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "user",
           content: prompt,
         },
       ],
+      max_tokens: 2048,
     });
 
     // レスポンスを解析
-    const responseText = message.content[0].type === "text" ? message.content[0].text : "";
+    const responseText = completion.choices[0]?.message?.content || "";
 
     let diagnosis;
     try {
