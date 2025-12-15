@@ -37,6 +37,10 @@ model User {
   // チーム関連
   ownedTeams         Team[]       @relation("TeamOwner")
   teamMemberships    TeamMember[]
+
+  // 目標・通知関連
+  salesGoals         SalesGoal[]
+  notifications      Notification[]
 }
 
 // ==========================================
@@ -334,4 +338,67 @@ model TeamMember {
   @@unique([teamId, userId])
   @@index([teamId])
   @@index([userId])
+}
+
+// ==========================================
+// GoalPeriod（目標期間）
+// ==========================================
+enum GoalPeriod {
+  MONTHLY  // 月次
+  QUARTERLY // 四半期
+  YEARLY   // 年次
+}
+
+// ==========================================
+// SalesGoal（売上目標）
+// ==========================================
+model SalesGoal {
+  id          String     @id @default(uuid())
+  userId      String
+  name        String     // 目標名
+  period      GoalPeriod // 期間タイプ
+  year        Int        // 対象年
+  month       Int?       // 対象月（月次の場合）
+  quarter     Int?       // 対象四半期（四半期の場合、1-4）
+  targetAmount Int       // 目標金額
+  notes       String?    // メモ
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([year])
+}
+
+// ==========================================
+// NotificationType（通知タイプ）
+// ==========================================
+enum NotificationType {
+  PAYMENT_DUE     // 支払期限
+  INVOICE_OVERDUE // 請求書期限超過
+  RECEIVABLE_DUE  // 売掛金回収期限
+  GOAL_ACHIEVED   // 目標達成
+  GOAL_WARNING    // 目標達成危険
+  SYSTEM          // システム通知
+}
+
+// ==========================================
+// Notification（通知）
+// ==========================================
+model Notification {
+  id          String           @id @default(uuid())
+  userId      String
+  type        NotificationType // 通知タイプ
+  title       String           // 通知タイトル
+  message     String           // 通知メッセージ
+  relatedId   String?          // 関連エンティティID（請求書IDなど）
+  isRead      Boolean          @default(false) // 既読フラグ
+  createdAt   DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
 }

@@ -19,6 +19,7 @@ import {
   Receipt,
   BadgePercent,
   UsersRound,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -31,6 +32,7 @@ const navigation = [
   { name: "取引先管理", href: "/partners", icon: Users },
   { name: "請求書", href: "/invoices", icon: Receipt },
   { name: "予算管理", href: "/budget", icon: Target },
+  { name: "目標設定", href: "/goals", icon: TrendingUp },
   { name: "税務サポート", href: "/tax", icon: BadgePercent },
   { name: "財務諸表", href: "/statements", icon: FileText },
   { name: "財務分析", href: "/analysis", icon: Brain },
