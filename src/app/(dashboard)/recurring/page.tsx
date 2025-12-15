@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,13 +54,6 @@ interface RecurringJournal {
   isActive: boolean;
   lastGeneratedAt: string | null;
 }
-
-const frequencyLabels: Record<string, string> = {
-  DAILY: "毎日",
-  WEEKLY: "毎週",
-  MONTHLY: "毎月",
-  YEARLY: "毎年",
-};
 
 const dayOfWeekLabels = ["日", "月", "火", "水", "木", "金", "土"];
 

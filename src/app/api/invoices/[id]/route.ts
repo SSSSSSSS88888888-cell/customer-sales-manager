@@ -4,6 +4,13 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+interface InvoiceItemInput {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+}
+
 // GET: 請求書詳細取得
 export async function GET(
   request: Request,
@@ -92,7 +99,7 @@ export async function PUT(
     const { partnerId, issueDate, dueDate, taxRate, notes, items } = body;
 
     // 金額再計算
-    const subtotal = items.reduce((sum: number, item: any) => sum + item.amount, 0);
+    const subtotal = items.reduce((sum: number, item: InvoiceItemInput) => sum + item.amount, 0);
     const taxAmount = Math.floor(subtotal * taxRate / 100);
     const totalAmount = subtotal + taxAmount;
 
@@ -113,7 +120,7 @@ export async function PUT(
         totalAmount,
         notes: notes || null,
         items: {
-          create: items.map((item: any) => ({
+          create: items.map((item: InvoiceItemInput) => ({
             description: item.description,
             quantity: item.quantity,
             unitPrice: item.unitPrice,

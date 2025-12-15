@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { InvoiceStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
+
+interface InvoiceItemInput {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+}
 
 // GET: 請求書一覧取得
 export async function GET(request: Request) {
@@ -18,7 +26,7 @@ export async function GET(request: Request) {
     const invoices = await prisma.invoice.findMany({
       where: {
         userId: session.user.id,
-        ...(status && status !== "all" ? { status: status as any } : {}),
+        ...(status && status !== "all" ? { status: status as InvoiceStatus } : {}),
       },
       include: {
         partner: { select: { id: true, code: true, name: true } },
@@ -74,7 +82,7 @@ export async function POST(request: Request) {
     const invoiceNumber = `INV-${year}${month}-${String(count + 1).padStart(4, "0")}`;
 
     // 金額計算
-    const subtotal = items.reduce((sum: number, item: any) => sum + item.amount, 0);
+    const subtotal = items.reduce((sum: number, item: InvoiceItemInput) => sum + item.amount, 0);
     const taxAmount = Math.floor(subtotal * taxRate / 100);
     const totalAmount = subtotal + taxAmount;
 
@@ -91,7 +99,7 @@ export async function POST(request: Request) {
         totalAmount,
         notes: notes || null,
         items: {
-          create: items.map((item: any) => ({
+          create: items.map((item: InvoiceItemInput) => ({
             description: item.description,
             quantity: item.quantity,
             unitPrice: item.unitPrice,

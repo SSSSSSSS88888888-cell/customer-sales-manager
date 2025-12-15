@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,6 +37,7 @@ interface Partner {
   id: string;
   code: string;
   name: string;
+  type: "CUSTOMER" | "VENDOR" | "BOTH";
 }
 
 interface InvoiceItem {
@@ -79,7 +80,7 @@ const statusColors: Record<string, string> = {
   CANCELLED: "bg-slate-100 text-slate-500",
 };
 
-const statusIcons: Record<string, any> = {
+const statusIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   DRAFT: Clock,
   SENT: Send,
   PAID: CheckCircle,
@@ -122,10 +123,9 @@ export default function InvoicesPage() {
         setInvoices(invData);
       }
       if (partRes.ok) {
-        const partData = await partRes.json();
         // 顧客とBOTHタイプの取引先を取得
         const allPartners = await fetch("/api/partners").then(r => r.json());
-        setPartners(allPartners.filter((p: any) => p.type === "CUSTOMER" || p.type === "BOTH"));
+        setPartners(allPartners.filter((p: Partner) => p.type === "CUSTOMER" || p.type === "BOTH"));
       }
     } catch (error) {
       console.error("データ取得エラー:", error);
@@ -134,7 +134,7 @@ export default function InvoicesPage() {
     }
   };
 
-  const handleItemChange = (index: number, field: keyof InvoiceItem, value: any) => {
+  const handleItemChange = (index: number, field: keyof InvoiceItem, value: string | number) => {
     const newItems = [...form.items];
     newItems[index] = { ...newItems[index], [field]: value };
 
