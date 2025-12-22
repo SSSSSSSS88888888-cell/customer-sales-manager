@@ -121,7 +121,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
           variant="ghost"
           size="icon"
           onClick={onMenuClick}
-          className="text-slate-600 hover:text-slate-900"
+          className="text-black/70 hover:text-black"
         >
           <Menu className="h-6 w-6" />
         </Button>
@@ -134,7 +134,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="relative mr-2">
-            <Bell className="h-5 w-5 text-slate-600" />
+            <Bell className="h-5 w-5 text-black/70" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">
                 {unreadCount > 9 ? "9+" : unreadCount}
@@ -168,7 +168,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {notifications.length === 0 ? (
-            <div className="p-4 text-center text-slate-500 text-sm">
+            <div className="p-4 text-center text-black/50 text-sm">
               通知はありません
             </div>
           ) : (
@@ -179,23 +179,23 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                   <DropdownMenuItem
                     key={notification.id}
                     className={`flex items-start gap-3 p-3 cursor-pointer ${
-                      !notification.isRead ? "bg-blue-50" : ""
+                      !notification.isRead ? "bg-red-50" : ""
                     }`}
                     onClick={() => !notification.isRead && markAsRead(notification.id)}
                   >
                     <Icon className={`h-5 w-5 mt-0.5 flex-shrink-0 ${
-                      notification.type === "INVOICE_OVERDUE" ? "text-red-500" :
-                      notification.type === "PAYMENT_DUE" ? "text-yellow-500" :
-                      notification.type === "GOAL_ACHIEVED" ? "text-green-500" :
-                      "text-slate-500"
+                      notification.type === "INVOICE_OVERDUE" ? "text-red-600" :
+                      notification.type === "PAYMENT_DUE" ? "text-red-400" :
+                      notification.type === "GOAL_ACHIEVED" ? "text-black" :
+                      "text-black/50"
                     }`} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{notification.title}</p>
-                      <p className="text-xs text-slate-500 line-clamp-2">{notification.message}</p>
-                      <p className="text-xs text-slate-400 mt-1">{formatDate(notification.createdAt)}</p>
+                      <p className="text-xs text-black/50 line-clamp-2">{notification.message}</p>
+                      <p className="text-xs text-black/40 mt-1">{formatDate(notification.createdAt)}</p>
                     </div>
                     {!notification.isRead && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2" />
+                      <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0 mt-2" />
                     )}
                   </DropdownMenuItem>
                 );
@@ -208,7 +208,7 @@ export function Header({ user, onMenuClick }: HeaderProps) {
       {/* ユーザーメニュー */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex items-center gap-2 hover:bg-slate-100">
+          <Button variant="ghost" className="flex items-center gap-2 hover:bg-black/5">
             {user.image ? (
               <img
                 src={user.image}
@@ -216,19 +216,19 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                 className="h-8 w-8 rounded-full"
               />
             ) : (
-              <div className="h-8 w-8 rounded-full bg-slate-900 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-full bg-black flex items-center justify-center">
                 <User className="h-4 w-4 text-white" />
               </div>
             )}
-            <span className="hidden sm:block text-slate-700 font-medium">
+            <span className="hidden sm:block text-black font-medium">
               {user.name || user.email}
             </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel className="text-slate-700">マイアカウント</DropdownMenuLabel>
+          <DropdownMenuLabel className="text-black">マイアカウント</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-slate-600">
+          <DropdownMenuItem className="text-black/70">
             <User className="mr-2 h-4 w-4" />
             {user.email}
           </DropdownMenuItem>

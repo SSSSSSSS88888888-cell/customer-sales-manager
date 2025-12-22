@@ -27,12 +27,12 @@ export default async function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-orange-100">
+    <div className="min-h-screen bg-gradient-to-br from-white via-red-50 to-red-100">
       {/* ヘッダー */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-orange-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-red-800 rounded-lg flex items-center justify-center">
               <Calculator className="h-5 w-5 text-white" />
             </div>
             <span className="font-bold text-slate-900">ZaimuAI</span>
@@ -57,7 +57,7 @@ export default async function LandingPage() {
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight">
             仕訳を入力するだけで
-            <span className="block mt-2 bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+            <span className="block mt-2 bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent">
               財務諸表を自動生成
             </span>
           </h1>
@@ -278,11 +278,11 @@ function HighlightCard({
 }) {
   const colorClasses = {
     red: "bg-red-100 text-red-600",
-    orange: "bg-orange-100 text-orange-600",
-    purple: "bg-purple-100 text-purple-600",
-    blue: "bg-blue-100 text-blue-600",
-    green: "bg-green-100 text-green-600",
-    amber: "bg-amber-100 text-amber-600",
+    orange: "bg-red-100 text-red-700",
+    purple: "bg-red-50 text-red-700",
+    blue: "bg-black/10 text-black",
+    green: "bg-red-100 text-red-600",
+    amber: "bg-black/10 text-black",
   };
 
   return (

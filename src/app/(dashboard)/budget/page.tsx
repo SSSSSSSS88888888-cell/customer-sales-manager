@@ -131,16 +131,16 @@ export default function BudgetPage() {
   };
 
   const getProgressColor = (actual: number, budget: number, isExpense: boolean = false) => {
-    if (budget === 0) return "bg-slate-200";
+    if (budget === 0) return "bg-black/20";
     const ratio = actual / budget;
     if (isExpense) {
-      if (ratio > 1) return "bg-red-500";
-      if (ratio > 0.8) return "bg-amber-500";
-      return "bg-green-500";
+      if (ratio > 1) return "bg-red-600";
+      if (ratio > 0.8) return "bg-red-400";
+      return "bg-black";
     } else {
-      if (ratio >= 1) return "bg-green-500";
-      if (ratio >= 0.8) return "bg-amber-500";
-      return "bg-red-500";
+      if (ratio >= 1) return "bg-black";
+      if (ratio >= 0.8) return "bg-red-400";
+      return "bg-red-600";
     }
   };
 
@@ -152,7 +152,7 @@ export default function BudgetPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+        <div className="animate-spin h-8 w-8 border-4 border-red-600 border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -171,8 +171,8 @@ export default function BudgetPage() {
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-            <Target className="h-5 w-5 text-orange-600" />
+          <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+            <Target className="h-5 w-5 text-red-600" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-900">予算管理</h1>
@@ -197,7 +197,7 @@ export default function BudgetPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-slate-500">年間売上</p>
-                <TrendingUp className="h-4 w-4 text-blue-500" />
+                <TrendingUp className="h-4 w-4 text-black" />
               </div>
               <p className="text-2xl font-bold text-slate-900">
                 {formatCurrency(data.yearlyTotal.salesActual)}
@@ -224,7 +224,7 @@ export default function BudgetPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-slate-500">年間費用</p>
-                <TrendingDown className="h-4 w-4 text-red-500" />
+                <TrendingDown className="h-4 w-4 text-red-600" />
               </div>
               <p className="text-2xl font-bold text-slate-900">
                 {formatCurrency(data.yearlyTotal.expensesActual)}
@@ -251,9 +251,9 @@ export default function BudgetPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-slate-500">年間利益</p>
-                <Target className="h-4 w-4 text-green-500" />
+                <Target className="h-4 w-4 text-black" />
               </div>
-              <p className={`text-2xl font-bold ${data.yearlyTotal.profitActual >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={`text-2xl font-bold ${data.yearlyTotal.profitActual >= 0 ? 'text-black' : 'text-red-600'}`}>
                 {formatCurrency(data.yearlyTotal.profitActual)}
               </p>
               <p className="text-xs text-slate-500 mt-2">
@@ -279,10 +279,10 @@ export default function BudgetPage() {
                   <YAxis tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} />
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
                   <Legend />
-                  <Bar dataKey="売上予算" fill="#93c5fd" />
-                  <Bar dataKey="売上実績" fill="#3b82f6" />
+                  <Bar dataKey="売上予算" fill="#1f2937" />
+                  <Bar dataKey="売上実績" fill="#000000" />
                   <Bar dataKey="費用予算" fill="#fca5a5" />
-                  <Bar dataKey="費用実績" fill="#ef4444" />
+                  <Bar dataKey="費用実績" fill="#dc2626" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -300,7 +300,7 @@ export default function BudgetPage() {
                 <Button variant="outline" onClick={() => setEditMode(false)}>
                   キャンセル
                 </Button>
-                <Button onClick={saveBudgets} disabled={isSaving} className="bg-orange-600 hover:bg-orange-700">
+                <Button onClick={saveBudgets} disabled={isSaving} className="bg-red-600 hover:bg-red-700">
                   {isSaving ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -354,10 +354,10 @@ export default function BudgetPage() {
                         formatCurrency(m.salesBudget)
                       )}
                     </td>
-                    <td className="py-3 px-2 text-right text-blue-600">{formatCurrency(m.salesActual)}</td>
+                    <td className="py-3 px-2 text-right text-black">{formatCurrency(m.salesActual)}</td>
                     <td className="py-3 px-2 text-right">
                       {m.salesBudget > 0 ? (
-                        <span className={m.salesActual >= m.salesBudget ? "text-green-600" : "text-red-600"}>
+                        <span className={m.salesActual >= m.salesBudget ? "text-black" : "text-red-600"}>
                           {((m.salesActual / m.salesBudget) * 100).toFixed(0)}%
                         </span>
                       ) : "-"}
@@ -380,7 +380,7 @@ export default function BudgetPage() {
                     <td className="py-3 px-2 text-right text-red-600">{formatCurrency(m.expensesActual)}</td>
                     <td className="py-3 px-2 text-right">
                       {m.expensesBudget > 0 ? (
-                        <span className={m.expensesActual <= m.expensesBudget ? "text-green-600" : "text-red-600"}>
+                        <span className={m.expensesActual <= m.expensesBudget ? "text-black" : "text-red-600"}>
                           {((m.expensesActual / m.expensesBudget) * 100).toFixed(0)}%
                         </span>
                       ) : "-"}

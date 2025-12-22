@@ -64,7 +64,7 @@ export default function CashFlowPage() {
   const AmountDisplay = ({ amount }: { amount: number }) => {
     if (amount > 0) {
       return (
-        <span className="font-mono text-green-600 flex items-center gap-1">
+        <span className="font-mono text-black flex items-center gap-1">
           <ArrowUp className="h-3 w-3" />
           {formatCurrency(amount)}
         </span>
@@ -98,8 +98,8 @@ export default function CashFlowPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-            <TrendingUp className="h-5 w-5 text-purple-600" />
+          <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+            <TrendingUp className="h-5 w-5 text-red-600" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-900">キャッシュフロー計算書</h1>
@@ -201,8 +201,8 @@ export default function CashFlowPage() {
         <div className="lg:col-span-2 space-y-4">
           {/* 営業活動によるキャッシュフロー */}
           <Card>
-            <CardHeader className="bg-blue-50 border-b">
-              <CardTitle className="text-blue-900">
+            <CardHeader className="bg-black/5 border-b">
+              <CardTitle className="text-black">
                 I. 営業活動によるキャッシュフロー
               </CardTitle>
             </CardHeader>
@@ -217,9 +217,9 @@ export default function CashFlowPage() {
                 </div>
               ))}
               {data?.operating.items.length === 0 && (
-                <div className="px-4 py-3 text-slate-400 text-sm">取引なし</div>
+                <div className="px-4 py-3 text-black/40 text-sm">取引なし</div>
               )}
-              <div className="px-4 py-3 flex justify-between font-bold bg-blue-100 text-blue-900">
+              <div className="px-4 py-3 flex justify-between font-bold bg-black/10 text-black">
                 <span>営業活動によるキャッシュフロー</span>
                 <AmountDisplay amount={summary?.operatingTotal || 0} />
               </div>
@@ -228,8 +228,8 @@ export default function CashFlowPage() {
 
           {/* 投資活動によるキャッシュフロー */}
           <Card>
-            <CardHeader className="bg-orange-50 border-b">
-              <CardTitle className="text-orange-900">
+            <CardHeader className="bg-red-50 border-b">
+              <CardTitle className="text-red-900">
                 II. 投資活動によるキャッシュフロー
               </CardTitle>
             </CardHeader>
@@ -244,9 +244,9 @@ export default function CashFlowPage() {
                 </div>
               ))}
               {data?.investing.items.length === 0 && (
-                <div className="px-4 py-3 text-slate-400 text-sm">取引なし</div>
+                <div className="px-4 py-3 text-black/40 text-sm">取引なし</div>
               )}
-              <div className="px-4 py-3 flex justify-between font-bold bg-orange-100 text-orange-900">
+              <div className="px-4 py-3 flex justify-between font-bold bg-red-100 text-red-900">
                 <span>投資活動によるキャッシュフロー</span>
                 <AmountDisplay amount={summary?.investingTotal || 0} />
               </div>
@@ -255,8 +255,8 @@ export default function CashFlowPage() {
 
           {/* 財務活動によるキャッシュフロー */}
           <Card>
-            <CardHeader className="bg-green-50 border-b">
-              <CardTitle className="text-green-900">
+            <CardHeader className="bg-red-50 border-b">
+              <CardTitle className="text-red-900">
                 III. 財務活動によるキャッシュフロー
               </CardTitle>
             </CardHeader>
@@ -271,9 +271,9 @@ export default function CashFlowPage() {
                 </div>
               ))}
               {data?.financing.items.length === 0 && (
-                <div className="px-4 py-3 text-slate-400 text-sm">取引なし</div>
+                <div className="px-4 py-3 text-black/40 text-sm">取引なし</div>
               )}
-              <div className="px-4 py-3 flex justify-between font-bold bg-green-100 text-green-900">
+              <div className="px-4 py-3 flex justify-between font-bold bg-red-100 text-red-900">
                 <span>財務活動によるキャッシュフロー</span>
                 <AmountDisplay amount={summary?.financingTotal || 0} />
               </div>
@@ -313,12 +313,12 @@ export default function CashFlowPage() {
               <CardTitle className="text-lg">キャッシュフローサマリー</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                <span className="text-blue-700">営業CF</span>
+              <div className="flex items-center justify-between p-3 bg-black/5 rounded-lg">
+                <span className="text-black">営業CF</span>
                 <span
                   className={`font-mono font-bold ${
                     (summary?.operatingTotal || 0) >= 0
-                      ? "text-green-600"
+                      ? "text-black"
                       : "text-red-600"
                   }`}
                 >
@@ -326,12 +326,12 @@ export default function CashFlowPage() {
                   {formatCurrency(summary?.operatingTotal || 0)}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                <span className="text-orange-700">投資CF</span>
+              <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                <span className="text-red-700">投資CF</span>
                 <span
                   className={`font-mono font-bold ${
                     (summary?.investingTotal || 0) >= 0
-                      ? "text-green-600"
+                      ? "text-black"
                       : "text-red-600"
                   }`}
                 >
@@ -339,12 +339,12 @@ export default function CashFlowPage() {
                   {formatCurrency(summary?.investingTotal || 0)}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                <span className="text-green-700">財務CF</span>
+              <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                <span className="text-red-700">財務CF</span>
                 <span
                   className={`font-mono font-bold ${
                     (summary?.financingTotal || 0) >= 0
-                      ? "text-green-600"
+                      ? "text-black"
                       : "text-red-600"
                   }`}
                 >
@@ -357,21 +357,21 @@ export default function CashFlowPage() {
 
           <Card
             className={
-              (summary?.netChange || 0) >= 0 ? "bg-green-50" : "bg-red-50"
+              (summary?.netChange || 0) >= 0 ? "bg-black/5" : "bg-red-50"
             }
           >
             <CardContent className="py-6">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   {(summary?.netChange || 0) >= 0 ? (
-                    <ArrowUp className="h-6 w-6 text-green-600" />
+                    <ArrowUp className="h-6 w-6 text-black" />
                   ) : (
                     <ArrowDown className="h-6 w-6 text-red-600" />
                   )}
                   <span
                     className={`text-sm font-medium ${
                       (summary?.netChange || 0) >= 0
-                        ? "text-green-600"
+                        ? "text-black"
                         : "text-red-600"
                     }`}
                   >
@@ -381,13 +381,13 @@ export default function CashFlowPage() {
                 <div
                   className={`text-3xl font-bold ${
                     (summary?.netChange || 0) >= 0
-                      ? "text-green-700"
+                      ? "text-black"
                       : "text-red-700"
                   }`}
                 >
                   ¥{formatCurrency(Math.abs(summary?.netChange || 0))}
                 </div>
-                <div className="text-sm text-slate-500 mt-1">現金増減額</div>
+                <div className="text-sm text-black/50 mt-1">現金増減額</div>
               </div>
             </CardContent>
           </Card>

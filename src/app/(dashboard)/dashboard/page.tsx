@@ -98,7 +98,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* ウェルカムメッセージ */}
-      <div className="bg-gradient-to-r from-red-600 to-orange-600 rounded-xl p-6 text-white shadow-lg">
+      <div className="bg-gradient-to-r from-red-600 to-red-800 rounded-xl p-6 text-white shadow-lg">
         <div className="flex items-center gap-3 mb-2">
           <Calculator className="h-8 w-8" />
           <h2 className="text-2xl font-bold">
@@ -129,8 +129,8 @@ export default async function DashboardPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Calculator className="h-6 w-6 text-blue-600" />
+              <div className="w-12 h-12 bg-black/10 rounded-xl flex items-center justify-center">
+                <Calculator className="h-6 w-6 text-black" />
               </div>
               <div>
                 <p className="text-sm text-slate-500">勘定科目数</p>
@@ -143,8 +143,8 @@ export default async function DashboardPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <Banknote className="h-6 w-6 text-green-600" />
+              <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                <Banknote className="h-6 w-6 text-red-600" />
               </div>
               <div>
                 <p className="text-sm text-slate-500">今年度取引額</p>
@@ -157,8 +157,8 @@ export default async function DashboardPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-purple-600" />
+              <div className="w-12 h-12 bg-black/10 rounded-xl flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-black" />
               </div>
               <div>
                 <p className="text-sm text-slate-500">今年度仕訳数</p>
@@ -236,41 +236,41 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <Link href="/statements/bs">
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+              <div className="flex items-center justify-between p-4 bg-black/5 rounded-lg hover:bg-black/10 transition-colors">
                 <div className="flex items-center gap-3">
-                  <FileText className="h-5 w-5 text-blue-600" />
+                  <FileText className="h-5 w-5 text-black" />
                   <div>
-                    <p className="font-medium text-blue-900">貸借対照表（B/S）</p>
-                    <p className="text-sm text-blue-600">資産・負債・純資産</p>
+                    <p className="font-medium text-black">貸借対照表（B/S）</p>
+                    <p className="text-sm text-black/60">資産・負債・純資産</p>
                   </div>
                 </div>
-                <ArrowRight className="h-5 w-5 text-blue-400" />
+                <ArrowRight className="h-5 w-5 text-black/40" />
               </div>
             </Link>
 
             <Link href="/statements/pl">
-              <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+              <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
                 <div className="flex items-center gap-3">
-                  <PieChart className="h-5 w-5 text-green-600" />
+                  <PieChart className="h-5 w-5 text-red-600" />
                   <div>
-                    <p className="font-medium text-green-900">損益計算書（P/L）</p>
-                    <p className="text-sm text-green-600">収益・費用・利益</p>
+                    <p className="font-medium text-red-900">損益計算書（P/L）</p>
+                    <p className="text-sm text-red-600">収益・費用・利益</p>
                   </div>
                 </div>
-                <ArrowRight className="h-5 w-5 text-green-400" />
+                <ArrowRight className="h-5 w-5 text-red-400" />
               </div>
             </Link>
 
             <Link href="/statements/cf">
-              <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+              <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
                 <div className="flex items-center gap-3">
-                  <TrendingUp className="h-5 w-5 text-purple-600" />
+                  <TrendingUp className="h-5 w-5 text-red-700" />
                   <div>
-                    <p className="font-medium text-purple-900">キャッシュフロー（C/F）</p>
-                    <p className="text-sm text-purple-600">現金の流れ</p>
+                    <p className="font-medium text-red-900">キャッシュフロー（C/F）</p>
+                    <p className="text-sm text-red-700">現金の流れ</p>
                   </div>
                 </div>
-                <ArrowRight className="h-5 w-5 text-purple-400" />
+                <ArrowRight className="h-5 w-5 text-red-400" />
               </div>
             </Link>
           </CardContent>
