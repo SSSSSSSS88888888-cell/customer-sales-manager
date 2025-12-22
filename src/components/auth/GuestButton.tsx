@@ -40,7 +40,7 @@ export function GuestButton() {
       type="button"
       onClick={handleGuestLogin}
       disabled={isLoading}
-      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-6"
+      className="w-full bg-black hover:bg-black/90 text-white font-medium py-6"
       size="lg"
     >
       {isLoading ? (
