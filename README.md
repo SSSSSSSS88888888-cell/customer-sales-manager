@@ -179,4 +179,3 @@ src/
 ## ライセンス
 
 MIT
-# intern-hw-saas-sw-dib-SSSSSSSS88888888-cell
