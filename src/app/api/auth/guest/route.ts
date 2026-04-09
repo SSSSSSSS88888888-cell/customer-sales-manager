@@ -191,8 +191,8 @@ export async function POST() {
       },
     });
 
-    // 勘定科目マスタ作成
-    const createdAccounts = await Promise.all(
+    // 勘定科目マスタを一括作成（$transactionで単一接続を使用し接続プール枯渇を回避）
+    const createdAccounts = await prisma.$transaction(
       STANDARD_ACCOUNTS.map((account) =>
         prisma.chartOfAccount.create({
           data: {
