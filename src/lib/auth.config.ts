@@ -27,23 +27,19 @@ export const authConfig: NextAuthConfig = {
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
+      // APIルートは個別のハンドラーで認証管理
+      if (nextUrl.pathname.startsWith("/api")) {
+        return true;
+      }
+
       const isLoggedIn = !!auth?.user;
       const publicPaths = ["/login", "/register"];
       const isPublicPath =
         nextUrl.pathname === "/" ||
         publicPaths.some((path) => nextUrl.pathname.startsWith(path));
 
-      if (nextUrl.pathname.startsWith("/api/auth")) {
-        return true;
-      }
-
       if (!isLoggedIn && !isPublicPath) {
         return false;
-      }
-
-      // ログイン済みで/login, /registerにアクセスした場合はダッシュボードへ
-      if (isLoggedIn && (nextUrl.pathname === "/login" || nextUrl.pathname === "/register")) {
-        return Response.redirect(new URL("/dashboard", nextUrl));
       }
 
       return true;

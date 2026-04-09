@@ -7,16 +7,16 @@ export default auth((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
 
+  // APIルートは個別のハンドラーで認証管理するため、ミドルウェアではスキップ
+  if (nextUrl.pathname.startsWith("/api")) {
+    return;
+  }
+
   // 認証不要のパス
   const publicPaths = ["/login", "/register"];
   const isPublicPath =
     nextUrl.pathname === "/" ||
     publicPaths.some((path) => nextUrl.pathname.startsWith(path));
-
-  // API認証パスは常に許可
-  if (nextUrl.pathname.startsWith("/api/auth")) {
-    return;
-  }
 
   // 未認証でプライベートページにアクセス → /login にリダイレクト
   if (!isLoggedIn && !isPublicPath) {
